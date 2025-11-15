@@ -1,4 +1,4 @@
-// app/build.gradle
+// app/build.gradle (Module: app)
 
 // 1. BLOK PLUGIN HARUS DI AWAL FILE
 plugins {
@@ -67,6 +67,12 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    
+    // ==========================================================
+    // PENAMBAHAN KRITIS: DEPENDENSI GOOGLE MOBILE ADS (ADMOB)
+    // ==========================================================
+    implementation 'com.google.android.gms:play-services-ads:23.0.0' // Versi terbaru saat ini
+    
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
