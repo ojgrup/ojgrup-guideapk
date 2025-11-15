@@ -1,49 +1,237 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Daftar Tips Pinjol</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="id">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daftar Panduan Utama</title>
     <style>
-        body { font-family: sans-serif; padding: 15px; background-color: #f4f4f4; }
-        h1 { color: #333; margin-bottom: 20px; }
-        
-        /* Gaya untuk elemen yang bisa diklik */
-        .card-link {
-            text-decoration: none; /* Hilangkan garis bawah default tautan */
-            color: inherit;
+      /* ========================================= */
+      /* 1. GLOBAL & RESET */
+      /* ========================================= */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f9;
+        overflow-x: hidden;
+      }
+
+      /* ========================================= */
+      /* 2. SLIDER PEMBUKA (OVERLAY) */
+      /* ========================================= */
+      #introSlider {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #007bff;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        z-index: 1000;
+        transition: opacity 0.5s ease;
+      }
+
+      .slider-content {
+        padding: 20px;
+        max-width: 80%;
+      }
+
+      .slider-content h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .slider-content p {
+        font-size: 1.2em;
+        margin-bottom: 30px;
+      }
+
+      #startButton {
+        padding: 12px 30px;
+        font-size: 1.1em;
+        border: none;
+        border-radius: 8px;
+        background-color: #28a745;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      #startButton:hover {
+        background-color: #218838;
+      }
+
+      /* ========================================= */
+      /* 3. MENU KARTU */
+      /* ========================================= */
+      #mainContent {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        width: 100%;
+      }
+
+      .page-header {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px 20px 0 20px;
+      }
+
+      .card-container {
+        width: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+
+      .card-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      /* Gaya Khusus untuk Anchor (a) yang Membungkus Kartu */
+      .card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+      }
+
+      .card {
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px 25px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        min-height: 80px;
+        cursor: pointer;
+      }
+
+      .card:hover {
+        transform: scale(1.01);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      }
+
+      .card-image {
+        width: 50px;
+        height: 50px;
+        object-fit: contain;
+        margin-right: 20px;
+        flex-shrink: 0;
+      }
+
+      .card-title {
+        font-size: 1.4em;
+        color: #333;
+        margin: 0;
+        flex-grow: 1;
+      }
+
+      /* Wadah Iklan (Placeholder) */
+      #admob_placeholder {
+        /* Tinggi dan margin akan disuntikkan oleh JavaScript di Android */
+        background-color: transparent;
+      }
+
+      @media (max-width: 450px) {
+
+        /* ... (media query Anda tetap sama) */
+        .card {
+          flex-direction: column;
+          text-align: center;
+          align-items: center;
+          padding: 15px;
         }
 
-        .card { 
-            background-color: white;
-            border: none; /* Hilangkan border */
-            padding: 20px; 
-            margin-bottom: 15px; 
-            border-radius: 10px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Tambahkan shadow */
-            transition: transform 0.2s; /* Efek hover/tap */
+        .card-image {
+          margin-right: 0;
+          margin-bottom: 10px;
         }
-        .card:active {
-            transform: scale(0.98); /* Efek saat ditekan */
+
+        .card-title {
+          font-size: 1.2em;
         }
-        h2 { font-size: 1.2em; margin-top: 0; }
-        p { color: #666; font-size: 0.9em; }
+      }
     </style>
-</head>
-<body>
-    <h1>Tips & Panduan Pinjol Aman</h1>
-    
-    <a href="guide1_legalitas.html" class="card-link">
-        <div class="card">
-            <h2>1. Cek Legalitas OJK</h2>
-            <p>Selalu pastikan penyedia pinjaman terdaftar dan diawasi oleh OJK...</p>
+  </head>
+  <body>
+    <div id="introSlider">
+      <div class="slider-content">
+        <h1>Selamat Datang di Panduan!</h1>
+        <p>Jelajahi panduan langkah demi langkah kami. Klik tombol di bawah untuk memulai.</p>
+        <button id="startButton">Mulai Sekarang</button>
+      </div>
+    </div>
+    <div id="mainContent">
+      <div class="card-container">
+        <div class="card-grid">
+          <a href="detail_langkah1.html" class="card-link">
+            <div class="card">
+              <img src="https://via.placeholder.com/50/007bff/ffffff?text=1" alt="Langkah 1" class="card-image">
+              <h2 class="card-title">1. Perencanaan dan Strategi Awal</h2>
+            </div>
+          </a>
+          <a href="detail_langkah2.html" class="card-link" id="card_target_2">
+            <div class="card">
+              <img src="https://via.placeholder.com/50/28a745/ffffff?text=2" alt="Langkah 2" class="card-image">
+              <h2 class="card-title">2. Persiapan Infrastruktur Sistem</h2>
+            </div>
+          </a>
+          <div id="admob_placeholder"></div>
+          <a href="detail_langkah3.html" class="card-link">
+            <div class="card">
+              <img src="https://via.placeholder.com/50/ffc107/333333?text=3" alt="Langkah 3" class="card-image">
+              <h2 class="card-title">3. Pengembangan Modul Utama</h2>
+            </div>
+          </a>
+          <a href="detail_langkah4.html" class="card-link">
+            <div class="card">
+              <img src="https://via.placeholder.com/50/dc3545/ffffff?text=4" alt="Langkah 4" class="card-image">
+              <h2 class="card-title">4. Pengujian dan Debugging Intensif</h2>
+            </div>
+          </a>
+          <a href="detail_langkah5.html" class="card-link">
+            <div class="card">
+              <img src="https://via.placeholder.com/50/6f42c1/ffffff?text=5" alt="Langkah 5" class="card-image">
+              <h2 class="card-title">5. Penyebaran ke Lingkungan Produksi</h2>
+            </div>
+          </a>
+          <a href="detail_langkah6.html" class="card-link">
+            <div class="card">
+              <img src="https://via.placeholder.com/50/17a2b8/ffffff?text=6" alt="Langkah 6" class="card-image">
+              <h2 class="card-title">6. Pemantauan dan Peningkatan Berkelanjutan</h2>
+            </div>
+          </a>
         </div>
-    </a>
-    
-    <a href="guide2_syarat.html" class="card-link">
-        <div class="card">
-            <h2>2. Pahami Syarat dan Ketentuan</h2>
-            <p>Baca dengan cermat bunga, denda, dan tenor pengembalian...</p>
-        </div>
-    </a>
-    </body>
+      </div>
+    </div>
+    <script>
+      document.getElementById('startButton').addEventListener('click', function() {
+        const slider = document.getElementById('introSlider');
+        const content = document.getElementById('mainContent');
+        // Mulai transisi fade-out pada slider
+        slider.style.opacity = '0';
+        // Tunggu hingga transisi selesai (500ms atau 0.5s)
+        setTimeout(() => {
+          // Sembunyikan slider
+          slider.style.display = 'none';
+          // Tampilkan konten utama (menu kartu)
+          content.style.display = 'block';
+          // Mulai transisi fade-in pada konten utama
+          setTimeout(() => {
+            content.style.opacity = '1';
+          }, 10);
+        }, 500);
+      });
+    </script>
+  </body>
 </html>
