@@ -5,59 +5,57 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.View; // Diperlukan untuk View.VISIBLE/GONE
+import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.FrameLayout; // Diperlukan untuk wadah iklan
+import android.widget.FrameLayout;
+
 // IKLAN ADMOB IMPORTS
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.LoadAdError;
-
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.AdLoadCallback;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import android.util.Log; // Diperlukan untuk Log.d/Log.e
 
 public class MainActivity extends AppCompatActivity {
 
     WebView webView;
-    private AdView mAdView; // Objek AdMob Banner
-    private FrameLayout adContainer; // Wadah AdMob di activity_main.xml
+    private AdView mAdView; // Variabel AdMob Banner
+    private FrameLayout adContainer;
+    
+    private InterstitialAd mInterstitialAd; // Variabel AdMob Interstitial
+    private int backPressCount = 0; 
+    private static final int AD_SHOW_THRESHOLD = 2; // Tampilkan iklan setiap 2 kali tombol back ditekan
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        // =================================================================
         // INISIALISASI ADMOB SDK (Wajib)
-        // =================================================================
         MobileAds.initialize(this, initializationStatus -> {
-            // Callback dipanggil saat SDK siap.
+            // SDK siap
         });
-        // =================================================================
 
         init();
         viewUrl();
-        loadBannerAd(); // Panggil metode untuk memuat iklan
+        loadBannerAd();      // Muat iklan Banner
+        loadInterstitialAd(); // Muat iklan Interstitial pertama kali
     }
 
     private void init() {
-        // Asumsi: webView ada di R.id.webView
         webView = findViewById(R.id.webView); 
-        
-        // Asumsi: Wadah AdMob ada di R.id.ad_container dan R.id.ad_view (dari layout XML)
         mAdView = findViewById(R.id.ad_view);
         adContainer = findViewById(R.id.ad_container);
     }
 
     private void viewUrl() {
-        
-        // =================================================================
-        // KODE KRITIS: MEMUAT KONTEN DARI FOLDER ASSETS
-        // =================================================================
         String localAssetUrl = "file:///android_asset/index.html"; 
-        
         WebSettings webSettings = webView.getSettings();
 
         webSettings.setJavaScriptEnabled(true);
@@ -67,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setDisplayZoomControls(false);
         
         webView.setWebViewClient(new CustomWebViewClient()); 
-
         webView.loadUrl(localAssetUrl);
     }
     
@@ -81,39 +78,31 @@ public class MainActivity extends AppCompatActivity {
         mAdView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
-                // Iklan berhasil dimuat, tampilkan wadah iklan Native (Android Layout)
                 adContainer.setVisibility(View.VISIBLE); 
-                // Suntikkan ruang kosong ke HTML agar konten tepat di bawah iklan Native
                 injectAdPlaceholder(); 
             }
 
             @Override
             public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                // Iklan gagal dimuat, sembunyikan wadah
                 adContainer.setVisibility(View.GONE);
-                // Penting: Hapus placeholder HTML agar tidak ada ruang kosong yang mengganggu
                 removeAdPlaceholder(); 
             }
         });
     }
 
-    // Menyuntikkan padding ke placeholder HTML agar sebanding dengan tinggi iklan Native
+    // Menyuntikkan ruang kosong ke HTML agar Banner Native di atas terlihat
     private void injectAdPlaceholder() {
-        // Tinggi iklan banner standar adalah sekitar 50dp. Kita gunakan ini sebagai perkiraan.
         final int adHeightDp = 50; 
         float density = getResources().getDisplayMetrics().density;
-        // Ubah DP ke Pixel dan tambahkan margin bawah 15px (seperti gap kartu)
         int adHeightPx = (int) (adHeightDp * density); 
         
-        // JavaScript untuk menemukan ID="admob_placeholder" dan memberikannya tinggi
+        // JavaScript mencari ID="admob_placeholder" di HTML dan memberinya tinggi
         String jsCode = "javascript:" +
             "var placeholder = document.getElementById('admob_placeholder');" +
             "if (placeholder) {" +
-            "   placeholder.style.height = '" + adHeightPx + "px';" + // Beri tinggi sesuai iklan Native
-            "   placeholder.style.marginBottom = '20px';" + // Sesuai dengan gap kartu di CSS Anda
+            "   placeholder.style.height = '" + adHeightPx + "px';" + 
+            "   placeholder.style.marginBottom = '20px';" + 
             "}";
-        
-        // Eksekusi JavaScript
         webView.loadUrl(jsCode);
     }
     
@@ -128,39 +117,85 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // =================================================================
+    // LOGIKA ADMOB INTERSTITIAL
+    // =================================================================
+    private void loadInterstitialAd() {
+        AdRequest adRequest = new AdRequest.Builder().build();
+
+        // GANTI DENGAN ID UNIT IKLAN INTERSTITIAL ANDA
+        InterstitialAd.load(this, "ca-app-pub-3940256099942544/1033173712", 
+            adRequest, new AdLoadCallback() {
+                @Override
+                public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                    mInterstitialAd = interstitialAd;
+                    Log.d("AdMob", "Interstitial Ad Loaded.");
+                }
+
+                @Override
+                public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                    mInterstitialAd = null;
+                    Log.e("AdMob", "Interstitial Ad Failed to Load: " + loadAdError.getMessage());
+                }
+            });
+    }
     
-    
+    // =================================================================
+    // KODE WEBVIEW DAN TOMBOL BACK
+    // =================================================================
     private class CustomWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            if (url.startsWith("file:///android_asset/") || url.startsWith("http") || url.startsWith("https")) {
+            if (url.startsWith("file:///android_asset/")) {
                  view.loadUrl(url);
                  return true; 
             }
+            // Izinkan link lain dibuka di browser luar (misalnya link eksternal atau tel/email)
             return false;
         }
         
         @Override
         public void onPageFinished(WebView view, String url) {
              super.onPageFinished(view, url);
-             // Panggil injectAdPlaceholder() lagi jika halaman berganti (misalnya dari detail kembali ke index)
+             // Memastikan placeholder iklan disuntikkan setiap kali halaman utama dimuat ulang
              if (url.contains("index.html") && adContainer.getVisibility() == View.VISIBLE) {
                  injectAdPlaceholder();
              }
         }
     }
     
-    // =================================================================
-    // PENANGANAN TOMBOL KEMBALI FISIK
-    // =================================================================
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        // Jika tombol back ditekan DAN WebView bisa kembali ke halaman sebelumnya
-        if ((keyCode == KeyEvent.KEYCODE_BACK) && webView.canGoBack()) {
-            webView.goBack();
-            return true; // Tangani event back
+        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
+            
+            if (webView.canGoBack()) {
+                backPressCount++;
+                
+                if (backPressCount >= AD_SHOW_THRESHOLD && mInterstitialAd != null) {
+                    // Tampilkan Interstitial Ad
+                    mInterstitialAd.show(MainActivity.this);
+                    
+                    mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                        @Override
+                        public void onAdDismissedFullScreenContent() {
+                            // Setelah iklan ditutup, lakukan aksi aslinya (kembali)
+                            webView.goBack();
+                            // Muat ulang iklan untuk siklus berikutnya
+                            loadInterstitialAd(); 
+                        }
+                    });
+                    
+                    backPressCount = 0; 
+                    return true; // Menahan event 'back' sampai iklan ditutup
+                    
+                } else {
+                    // Jika iklan tidak tersedia atau threshold belum tercapai, kembali normal
+                    webView.goBack();
+                    return true;
+                }
+            }
         }
-        // Biarkan sistem menangani (misalnya keluar dari aplikasi)
+        
+        // Jika tidak bisa kembali di WebView, biarkan sistem menangani (keluar aplikasi)
         return super.onKeyDown(keyCode, event);
     }
 }
