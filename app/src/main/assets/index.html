@@ -1,23 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Guide Pinjaman Online</title>
+    <title>Daftar Tips Pinjol</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
-        h1 { color: #333; }
-        .card { border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 8px; }
+        body { font-family: sans-serif; padding: 15px; background-color: #f4f4f4; }
+        h1 { color: #333; margin-bottom: 20px; }
+        
+        /* Gaya untuk elemen yang bisa diklik */
+        .card-link {
+            text-decoration: none; /* Hilangkan garis bawah default tautan */
+            color: inherit;
+        }
+
+        .card { 
+            background-color: white;
+            border: none; /* Hilangkan border */
+            padding: 20px; 
+            margin-bottom: 15px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Tambahkan shadow */
+            transition: transform 0.2s; /* Efek hover/tap */
+        }
+        .card:active {
+            transform: scale(0.98); /* Efek saat ditekan */
+        }
+        h2 { font-size: 1.2em; margin-top: 0; }
+        p { color: #666; font-size: 0.9em; }
     </style>
 </head>
 <body>
     <h1>Tips & Panduan Pinjol Aman</h1>
-    <div class="card">
-        <h2>1. Cek Legalitas OJK</h2>
-        <p>Selalu pastikan penyedia pinjaman terdaftar dan diawasi oleh OJK untuk menghindari risiko penipuan.</p>
-    </div>
-    <div class="card">
-        <h2>2. Pahami Syarat dan Ketentuan</h2>
-        <p>Baca dengan cermat bunga, denda, dan tenor pengembalian sebelum menyetujui pinjaman.</p>
-    </div>
+    
+    <a href="guide1_legalitas.html" class="card-link">
+        <div class="card">
+            <h2>1. Cek Legalitas OJK</h2>
+            <p>Selalu pastikan penyedia pinjaman terdaftar dan diawasi oleh OJK...</p>
+        </div>
+    </a>
+    
+    <a href="guide2_syarat.html" class="card-link">
+        <div class="card">
+            <h2>2. Pahami Syarat dan Ketentuan</h2>
+            <p>Baca dengan cermat bunga, denda, dan tenor pengembalian...</p>
+        </div>
+    </a>
     </body>
 </html>
