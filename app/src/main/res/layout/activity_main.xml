@@ -6,7 +6,8 @@
     xmlns:ads="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"  tools:context=".MainActivity">
+    android:fitsSystemWindows="true" 
+    tools:context=".MainActivity">
 
     <FrameLayout
         android:id="@+id/ad_container"
@@ -34,7 +35,11 @@
         android:id="@+id/webView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:fitsSystemWindows="true"  android:clipToPadding="true"      app:layout_constraintBottom_toBottomOf="parent"
+        
+        android:clipToPadding="true" 
+        android:fitsSystemWindows="true" 
+        
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ad_container" />
