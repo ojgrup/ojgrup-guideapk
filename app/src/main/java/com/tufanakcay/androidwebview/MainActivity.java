@@ -18,34 +18,33 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
-import com.google.android.gms.ads.AdLoadCallback;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback; // <--- IMPOR YANG BENAR
 import com.google.android.gms.ads.FullScreenContentCallback;
-import android.util.Log; // Diperlukan untuk Log.d/Log.e
+import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
 
     WebView webView;
-    private AdView mAdView; // Variabel AdMob Banner
+    private AdView mAdView;
     private FrameLayout adContainer;
     
-    private InterstitialAd mInterstitialAd; // Variabel AdMob Interstitial
+    private InterstitialAd mInterstitialAd;
     private int backPressCount = 0; 
-    private static final int AD_SHOW_THRESHOLD = 2; // Tampilkan iklan setiap 2 kali tombol back ditekan
+    private static final int AD_SHOW_THRESHOLD = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        // INISIALISASI ADMOB SDK (Wajib)
         MobileAds.initialize(this, initializationStatus -> {
             // SDK siap
         });
 
         init();
         viewUrl();
-        loadBannerAd();      // Muat iklan Banner
-        loadInterstitialAd(); // Muat iklan Interstitial pertama kali
+        loadBannerAd();    
+        loadInterstitialAd();
     }
 
     private void init() {
@@ -90,13 +89,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Menyuntikkan ruang kosong ke HTML agar Banner Native di atas terlihat
     private void injectAdPlaceholder() {
         final int adHeightDp = 50; 
         float density = getResources().getDisplayMetrics().density;
         int adHeightPx = (int) (adHeightDp * density); 
         
-        // JavaScript mencari ID="admob_placeholder" di HTML dan memberinya tinggi
         String jsCode = "javascript:" +
             "var placeholder = document.getElementById('admob_placeholder');" +
             "if (placeholder) {" +
@@ -106,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
         webView.loadUrl(jsCode);
     }
     
-    // Menghapus ruang kosong jika iklan gagal dimuat
     private void removeAdPlaceholder() {
         String jsCode = "javascript:" +
             "var placeholder = document.getElementById('admob_placeholder');" +
@@ -122,13 +118,15 @@ public class MainActivity extends AppCompatActivity {
     private void loadInterstitialAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
 
-        // GANTI DENGAN ID UNIT IKLAN INTERSTITIAL ANDA
+        // Perbaikan: Ganti AdLoadCallback menjadi InterstitialAdLoadCallback
         InterstitialAd.load(this, "ca-app-pub-3940256099942544/1033173712", 
-            adRequest, new AdLoadCallback() {
+            adRequest, new InterstitialAdLoadCallback() { // <--- PERBAIKAN DI SINI!
                 @Override
                 public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
                     mInterstitialAd = interstitialAd;
                     Log.d("AdMob", "Interstitial Ad Loaded.");
+                    // Opsional: set FullScreenContentCallback di sini saat iklan dimuat
+                    setInterstitialAdCallback(); 
                 }
 
                 @Override
@@ -137,6 +135,21 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("AdMob", "Interstitial Ad Failed to Load: " + loadAdError.getMessage());
                 }
             });
+    }
+
+    // Metode baru untuk mengatur callback iklan
+    private void setInterstitialAdCallback() {
+        if (mInterstitialAd != null) {
+            mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                @Override
+                public void onAdDismissedFullScreenContent() {
+                    // Setelah iklan ditutup, lakukan aksi aslinya (kembali)
+                    webView.goBack();
+                    // Muat ulang iklan untuk siklus berikutnya
+                    loadInterstitialAd(); 
+                }
+            });
+        }
     }
     
     // =================================================================
@@ -149,14 +162,12 @@ public class MainActivity extends AppCompatActivity {
                  view.loadUrl(url);
                  return true; 
             }
-            // Izinkan link lain dibuka di browser luar (misalnya link eksternal atau tel/email)
             return false;
         }
         
         @Override
         public void onPageFinished(WebView view, String url) {
              super.onPageFinished(view, url);
-             // Memastikan placeholder iklan disuntikkan setiap kali halaman utama dimuat ulang
              if (url.contains("index.html") && adContainer.getVisibility() == View.VISIBLE) {
                  injectAdPlaceholder();
              }
@@ -171,21 +182,14 @@ public class MainActivity extends AppCompatActivity {
                 backPressCount++;
                 
                 if (backPressCount >= AD_SHOW_THRESHOLD && mInterstitialAd != null) {
+                    
                     // Tampilkan Interstitial Ad
                     mInterstitialAd.show(MainActivity.this);
                     
-                    mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
-                        @Override
-                        public void onAdDismissedFullScreenContent() {
-                            // Setelah iklan ditutup, lakukan aksi aslinya (kembali)
-                            webView.goBack();
-                            // Muat ulang iklan untuk siklus berikutnya
-                            loadInterstitialAd(); 
-                        }
-                    });
+                    // setFullScreenContentCallback sudah dipindahkan ke loadInterstitialAd()
                     
                     backPressCount = 0; 
-                    return true; // Menahan event 'back' sampai iklan ditutup
+                    return true;
                     
                 } else {
                     // Jika iklan tidak tersedia atau threshold belum tercapai, kembali normal
@@ -195,7 +199,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         
-        // Jika tidak bisa kembali di WebView, biarkan sistem menangani (keluar aplikasi)
         return super.onKeyDown(keyCode, event);
     }
 }
