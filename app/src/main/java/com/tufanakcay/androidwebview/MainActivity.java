@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.WindowManager; // Tambahkan ini
+import android.view.WindowManager; 
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -37,7 +37,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         // PERBAIKAN: Hapus flag fullscreen jika ada untuk memastikan layout menghormati status bar
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); 
-        // Pastikan status bar terlihat
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE); 
         
         super.onCreate(savedInstanceState);
@@ -47,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
         init();
         // 2. Muat URL WebView
         viewUrl();
+
+        // PENTING: Panggil fungsi ini untuk memastikan konten ditampilkan, terutama jika slider intro dilewati.
+        showContent(); 
 
         // 3. Muat iklan
         MobileAds.initialize(this, initializationStatus -> {
@@ -100,9 +102,19 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // Hanya suntikkan tinggi untuk placeholder
+    // Fungsi untuk memaksa #mainContent tampil (jika script index.html gagal)
+    private void showContent() {
+        String jsCode = "javascript:" +
+            "var content = document.getElementById('mainContent');" +
+            "if (content) {" +
+            "   content.style.display = 'block';" +
+            "   setTimeout(function(){ content.style.opacity = '1'; }, 100);" + 
+            "}";
+        webView.loadUrl(jsCode);
+    }
+
+    // Hanya suntikkan tinggi untuk placeholder, menghilangkan teks debug
     private void injectAdPlaceholder() {
-        // Tinggi standard AdMob Banner (50dp) + margin (5dp) = 55dp
         final int adHeightDp = 55; 
         float density = getResources().getDisplayMetrics().density;
         int adHeightPx = (int) (adHeightDp * density);
@@ -176,8 +188,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
              super.onPageFinished(view, url);
-             // PENTING: Panggilan injectAdPlaceholder() dihapus di sini
-             // karena hanya dipanggil di onAdLoaded()
         }
     }
     
