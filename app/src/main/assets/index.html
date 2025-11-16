@@ -1,82 +1,8 @@
 <!DOCTYPE html>
 <html lang="id">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Daftar Panduan Utama</title>
     <style>
-      /* ========================================= */
-      /* 1. GLOBAL & RESET */
-      /* ========================================= */
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f9;
-        overflow-x: hidden;
-      }
-
-      /* ================================================= */
-      /* PERBAIKAN PENTING: Wadah Iklan (Placeholder) */
-      /* ================================================= */
-      /* Kita memastikan Placeholder tidak memiliki margin, karena JavaScript akan mengaturnya. */
-      #admob_placeholder {
-        /* Tinggi dan margin akan disuntikkan oleh JavaScript di Android */
-        background-color: transparent;
-        margin: 0; 
-        padding: 0;
-      }
-
-      /* ========================================= */
-      /* 2. SLIDER PEMBUKA (OVERLAY) */
-      /* (Tidak diubah - Sudah OK) */
-      /* ========================================= */
-      #introSlider {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: #007bff;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        z-index: 1000;
-        transition: opacity 0.5s ease;
-      }
-
-      .slider-content {
-        padding: 20px;
-        max-width: 80%;
-      }
-
-      .slider-content h1 {
-        font-size: 2.5em;
-        margin-bottom: 10px;
-      }
-
-      .slider-content p {
-        font-size: 1.2em;
-        margin-bottom: 30px;
-      }
-
-      #startButton {
-        padding: 12px 30px;
-        font-size: 1.1em;
-        border: none;
-        border-radius: 8px;
-        background-color: #28a745;
-        color: white;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
-
-      #startButton:hover {
-        background-color: #218838;
-      }
+      /* ... (CSS Global & Placeholder sudah bersih) ... */
 
       /* ========================================= */
       /* 3. MENU KARTU */
@@ -87,160 +13,19 @@
         transition: opacity 0.5s ease;
         width: 100%;
         
-        /* PERBAIKAN PENTING: Tambahkan margin-top untuk memberi ruang default. */
-        /* Margin ini akan disesuaikan jika Banner Ad tidak ada, tetapi ini membantu mencegah tumpang tindih. */
-        /* Tinggi banner standard adalah 50px */
-        padding-top: 10px; 
+        /* HAPUS: padding-top: 10px; */ 
+        /* Biarkan AdMob Banner yang diatur di XML dan Java mengontrol ruang awal */
       }
-
-      .page-header {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px 20px 0 20px;
-      }
-
-      .card-container {
-        width: 100%;
-        padding: 20px;
-        box-sizing: border-box;
-      }
-
-      .card-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 20px;
-        max-width: 900px;
-        margin: 0 auto;
-      }
-
-      .card-link {
-        text-decoration: none;
-        color: inherit;
-        display: block;
-      }
-
-      .card {
-        background-color: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 20px 25px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        text-align: left;
-        display: flex;
-        align-items: center;
-        min-height: 80px;
-        cursor: pointer;
-      }
-
-      .card:hover {
-        transform: scale(1.01);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-      }
-
-      .card-image {
-        width: 50px;
-        height: 50px;
-        object-fit: contain;
-        margin-right: 20px;
-        flex-shrink: 0;
-      }
-
-      .card-title {
-        font-size: 1.4em;
-        color: #333;
-        margin: 0;
-        flex-grow: 1;
-      }
-
-      @media (max-width: 450px) {
-
-        .card {
-          flex-direction: column;
-          text-align: center;
-          align-items: center;
-          padding: 15px;
-        }
-
-        .card-image {
-          margin-right: 0;
-          margin-bottom: 10px;
-        }
-
-        .card-title {
-          font-size: 1.2em;
-        }
-      }
+      
+      /* ... (CSS lainnya) ... */
     </style>
   </head>
   <body>
-    <div id="introSlider">
-      <div class="slider-content">
-        <h1>Selamat Datang di Panduan!</h1>
-        <p>Jelajahi panduan langkah demi langkah kami. Klik tombol di bawah untuk memulai.</p>
-        <button id="startButton">Mulai Sekarang</button>
-      </div>
-    </div>
     <div id="mainContent">
       <div class="card-container">
         <div class="card-grid">
-          <a href="guide1_legalitas.html" class="card-link">
-            <div class="card">
-              <img src="https://via.placeholder.com/50/007bff/ffffff?text=1" alt="Langkah 1" class="card-image">
-              <h2 class="card-title">1. Perencanaan dan Strategi Awal</h2>
-            </div>
-          </a>
-          <a href="detail_langkah2.html" class="card-link" id="card_target_2">
-            <div class="card">
-              <img src="https://via.placeholder.com/50/28a745/ffffff?text=2" alt="Langkah 2" class="card-image">
-              <h2 class="card-title">2. Persiapan Infrastruktur Sistem</h2>
-            </div>
-          </a>
-          
-          <div id="admob_placeholder"></div> 
-          
-          <a href="detail_langkah3.html" class="card-link">
-            <div class="card">
-              <img src="https://via.placeholder.com/50/ffc107/333333?text=3" alt="Langkah 3" class="card-image">
-              <h2 class="card-title">3. Pengembangan Modul Utama</h2>
-            </div>
-          </a>
-          <a href="detail_langkah4.html" class="card-link">
-            <div class="card">
-              <img src="https://via.placeholder.com/50/dc3545/ffffff?text=4" alt="Langkah 4" class="card-image">
-              <h2 class="card-title">4. Pengujian dan Debugging Intensif</h2>
-            </div>
-          </a>
-          <a href="detail_langkah5.html" class="card-link">
-            <div class="card">
-              <img src="https://via.placeholder.com/50/6f42c1/ffffff?text=5" alt="Langkah 5" class="card-image">
-              <h2 class="card-title">5. Penyebaran ke Lingkungan Produksi</h2>
-            </div>
-          </a>
-          <a href="detail_langkah6.html" class="card-link">
-            <div class="card">
-              <img src="https://via.placeholder.com/50/17a2b8/ffffff?text=6" alt="Langkah 6" class="card-image">
-              <h2 class="card-title">6. Pemantauan dan Peningkatan Berkelanjutan</h2>
-            </div>
-          </a>
-        </div>
+          <div id="admob_placeholder"></div> </div>
       </div>
     </div>
-    <script>
-      document.getElementById('startButton').addEventListener('click', function() {
-        const slider = document.getElementById('introSlider');
-        const content = document.getElementById('mainContent');
-        
-        slider.style.opacity = '0';
-        
-        setTimeout(() => {
-          slider.style.display = 'none';
-          content.style.display = 'block';
-          
-          setTimeout(() => {
-            content.style.opacity = '1';
-          }, 10);
-        }, 500);
-      });
-    </script>
-  </body>
+    </body>
 </html>
