@@ -10,7 +10,6 @@ def releasePropsFile = rootProject.file('release.properties')
 def releaseProps = new Properties()
 if (releasePropsFile.exists()) {
     try {
-        // Menggunakan FileInputStream yang benar
         releaseProps.load(new FileInputStream(releasePropsFile))
     } catch (FileNotFoundException e) {
         println "WARNING: release.properties file not found: " + e.getMessage()
@@ -22,11 +21,9 @@ if (releasePropsFile.exists()) {
 
 // 3. BLOK ANDROID HARUS MENGIKUTI DAN MENGANDUNG SEMUA KONFIGURASI SDK/VERSION
 android {
-    // Pastikan compileSdk didefinisikan di sini
     compileSdk 33
     namespace 'com.tufanakcay.androidwebview' 
 
-    // defaultConfig harus ada di dalam blok android {}
     defaultConfig {
         applicationId "com.tufanakcay.androidwebview" 
         minSdk 23
@@ -37,10 +34,8 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     
-    // Konfigurasi Signing Dinamis
     signingConfigs {
         release {
-            // Menggunakan file() karena Keystore ada di folder 'app/'
             storeFile file(releaseProps.getProperty('storeFile') ?: "release-key.jks") 
             storePassword releaseProps.getProperty('storePassword') ?: "" 
             keyAlias releaseProps.getProperty('keyAlias') ?: "" 
@@ -50,7 +45,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            // PENTING: Menonaktifkan minifikasi untuk menghindari error ProGuard
+            minifyEnabled false 
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             
             signingConfig signingConfigs.release
@@ -68,10 +64,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
-    // ==========================================================
-    // PENAMBAHAN KRITIS: DEPENDENSI GOOGLE MOBILE ADS (ADMOB)
-    // ==========================================================
-    implementation 'com.google.android.gms:play-services-ads:23.0.0' // Versi terbaru saat ini
+    // DEPENDENSI WAJIB ADMOB
+    implementation 'com.google.android.gms:play-services-ads:23.0.0'
     
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
