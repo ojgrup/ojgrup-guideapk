@@ -25,19 +25,11 @@
         width: 100%;
       }
 
-      .page-header {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 20px 20px 0 20px;
-      }
-
       .card-container {
         width: 100%;
         padding: 20px;
         box-sizing: border-box;
-        
-        /* 💡 PERBAIKAN KRUSIAL: Tambahkan margin-top untuk membuat ruang di bawah AdMob */
-        margin-top: 55px; 
+        /* HILANGKAN margin-top karena iklan atas sudah ditangani di XML */
       }
 
       .card-grid {
@@ -48,7 +40,22 @@
         margin: 0 auto;
       }
 
-      /* ... (CSS kartu lainnya) ... */
+      /* 💡 CSS BARU: RUANG KOSONG UNTUK IKLAN "NATIVE" */
+      #native_ad_placeholder {
+        /* Tinggi untuk Iklan Medium Rectangle (300x250) + padding */
+        height: 280px; 
+        background-color: #ffffff; /* Latar belakang agar menyatu */
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: #666;
+        font-size: 0.8em;
+      }
+      
+      /* ... (CSS kartu lainnya tetap sama) ... */
       .card-link {
         text-decoration: none;
         color: inherit;
@@ -110,12 +117,17 @@
               <h2 class="card-title">1. Perencanaan dan Strategi Awal</h2>
             </div>
           </a>
+          
           <a href="detail_langkah2.html" class="card-link" id="card_target_2">
             <div class="card">
               <img src="https://via.placeholder.com/50/28a745/ffffff?text=2" alt="Langkah 2" class="card-image">
-              <h2 class="card-title">2. Persiapan Infrastruktur Sistem (Diatas Iklan)</h2>
+              <h2 class="card-title">2. Persiapan Infrastruktur Sistem</h2>
             </div>
           </a>
+          
+          <div id="native_ad_placeholder">
+            [Iklan dari AdMob akan muncul di sini] 
+          </div> 
           
           <a href="detail_langkah3.html" class="card-link">
             <div class="card">
@@ -123,6 +135,7 @@
               <h2 class="card-title">3. Pengembangan Modul Utama</h2>
             </div>
           </a>
+          
           <a href="detail_langkah4.html" class="card-link">
             <div class="card">
               <img src="https://via.placeholder.com/50/dc3545/ffffff?text=4" alt="Langkah 4" class="card-image">
