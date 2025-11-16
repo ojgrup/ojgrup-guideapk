@@ -16,8 +16,20 @@
         overflow-x: hidden;
       }
 
+      /* ================================================= */
+      /* PERBAIKAN PENTING: Wadah Iklan (Placeholder) */
+      /* ================================================= */
+      /* Kita memastikan Placeholder tidak memiliki margin, karena JavaScript akan mengaturnya. */
+      #admob_placeholder {
+        /* Tinggi dan margin akan disuntikkan oleh JavaScript di Android */
+        background-color: transparent;
+        margin: 0; 
+        padding: 0;
+      }
+
       /* ========================================= */
       /* 2. SLIDER PEMBUKA (OVERLAY) */
+      /* (Tidak diubah - Sudah OK) */
       /* ========================================= */
       #introSlider {
         position: fixed;
@@ -74,6 +86,11 @@
         opacity: 0;
         transition: opacity 0.5s ease;
         width: 100%;
+        
+        /* PERBAIKAN PENTING: Tambahkan margin-top untuk memberi ruang default. */
+        /* Margin ini akan disesuaikan jika Banner Ad tidak ada, tetapi ini membantu mencegah tumpang tindih. */
+        /* Tinggi banner standard adalah 50px */
+        padding-top: 10px; 
       }
 
       .page-header {
@@ -96,7 +113,6 @@
         margin: 0 auto;
       }
 
-      /* Gaya Khusus untuk Anchor (a) yang Membungkus Kartu */
       .card-link {
         text-decoration: none;
         color: inherit;
@@ -136,15 +152,8 @@
         flex-grow: 1;
       }
 
-      /* Wadah Iklan (Placeholder) */
-      #admob_placeholder {
-        /* Tinggi dan margin akan disuntikkan oleh JavaScript di Android */
-        background-color: transparent;
-      }
-
       @media (max-width: 450px) {
 
-        /* ... (media query Anda tetap sama) */
         .card {
           flex-direction: column;
           text-align: center;
@@ -186,7 +195,9 @@
               <h2 class="card-title">2. Persiapan Infrastruktur Sistem</h2>
             </div>
           </a>
-          <div id="admob_placeholder"></div>
+          
+          <div id="admob_placeholder"></div> 
+          
           <a href="detail_langkah3.html" class="card-link">
             <div class="card">
               <img src="https://via.placeholder.com/50/ffc107/333333?text=3" alt="Langkah 3" class="card-image">
@@ -218,15 +229,13 @@
       document.getElementById('startButton').addEventListener('click', function() {
         const slider = document.getElementById('introSlider');
         const content = document.getElementById('mainContent');
-        // Mulai transisi fade-out pada slider
+        
         slider.style.opacity = '0';
-        // Tunggu hingga transisi selesai (500ms atau 0.5s)
+        
         setTimeout(() => {
-          // Sembunyikan slider
           slider.style.display = 'none';
-          // Tampilkan konten utama (menu kartu)
           content.style.display = 'block';
-          // Mulai transisi fade-in pada konten utama
+          
           setTimeout(() => {
             content.style.opacity = '1';
           }, 10);
