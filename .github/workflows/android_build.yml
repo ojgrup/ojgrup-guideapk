@@ -3,10 +3,8 @@ name: Dynamic WebAPK Generator
 on:
   workflow_dispatch:
     inputs:
-      URL:
-        description: 'URL Website Utama'
-        required: true
-        default: 'https://default.com'
+      # INPUT URL DIHAPUS, KARENA APLIKASI MENGGUNAKAN file:///android_asset/index.html
+      
       PACKAGE_NAME:
         description: 'Package Name Aplikasi'
         required: true
@@ -18,6 +16,7 @@ on:
       ICON_URL: 
         description: 'URL Icon Aplikasi (PNG/JPG, Max 5MB)'
         required: true
+        default: 'https://via.placeholder.com/512' # Default dummy
       KEY_ALIAS:
         description: 'Alias Keystore'
         required: true
@@ -47,34 +46,31 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    # 2. SETUP ANDROID PATH/ENVIRONMENT (Mencegah 'sdkmanager: command not found')
+    # 2. SETUP ANDROID PATH/ENVIRONMENT
     - name: Setup Android SDK Environment 🛠️
       uses: android-actions/setup-android@v3 
 
-    # 3. INSTALASI KOMPONEN SDK 34 (Setelah environment disiapkan)
+    # 3. INSTALASI KOMPONEN SDK 34
     - name: Install Android SDK Components (API 34) 🚀
       run: |
         yes | sdkmanager "platforms;android-34" "build-tools;34.0.0" 
 
-    # 4. INSTALASI IMAGE MAGICK (Untuk perbaikan ikon AAPT2)
+    # 4. INSTALASI IMAGE MAGICK
     - name: Install ImageMagick for Icon Processing
       run: sudo apt-get install -y imagemagick
 
     - name: Ensure gradlew is executable
       run: chmod +x gradlew
         
-    - name: Update Configs (Package Name, URL, dan App Name)
+    - name: Update Configs (Package Name dan App Name)
       run: |
-        URL_INPUT=$(echo "${{ github.event.inputs.URL }}" | sed 's/[\/&]/\\&/g')
-        
-        # 1. Update Package Name
+        # Package Name
         sed -i "s/applicationId \".*\"/applicationId \"${{ github.event.inputs.PACKAGE_NAME }}\"/g" app/build.gradle
         
-        # 2. Update App Name
+        # App Name
         sed -i "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">${{ github.event.inputs.APP_NAME }}</string>|g" app/src/main/res/values/strings.xml
         
-        # 3. Update URL (Menggunakan delimiter ; dan variabel yang di-escape)
-        sed -i "s;<string name=\"web_url\">.*</string>;<string name=\"web_url\">$URL_INPUT</string>;g" app/src/main/res/values/strings.xml
+        # BARIS UNTUK UPDATE URL DIHAPUS (karena tidak lagi menggunakan web_url di strings.xml)
         
     - name: Create Signing Properties File
       run: |
@@ -94,14 +90,14 @@ jobs:
         rm -rf app/src/main/res/mipmap-anydpi-v26/*
         echo "Ultimate cleanup complete."
 
-    # 5. DOWNLOAD DAN KONVERSI IKON (Mencegah Aapt2Exception)
+    # 5. DOWNLOAD DAN KONVERSI IKON
     - name: Download Icon from URL and Save
       run: |
         ICON_URL_INPUT="${{ github.event.inputs.ICON_URL }}" 
         TEMP_DIR="/tmp/icon_download"
         mkdir -p $TEMP_DIR
         
-        # 1. Unduh file mentah ke direktori sementara
+        # 1. Unduh file mentah
         echo "Downloading icon from: $ICON_URL_INPUT"
         curl -f -L "$ICON_URL_INPUT" -o $TEMP_DIR/temp_icon.png
         
@@ -119,7 +115,7 @@ jobs:
             exit 1
         fi
 
-        # 2. KONVERSI DAN OPTIMASI (Mengatasi Aapt2Exception)
+        # 2. KONVERSI DAN OPTIMASI
         ICON_DEST_DIR="app/src/main/res/mipmap-xxhdpi/" 
         mkdir -p $ICON_DEST_DIR
         
@@ -140,10 +136,9 @@ jobs:
         
     - name: Change Keystore Permissions
       run: chmod 777 app/release-key.jks
-      
-    # 🌟 PERBAIKAN UTAMA UNTUK ERROR XML (Posisi 1)
-    # Memaksa lingkungan (locale) ke UTF-8 untuk menghindari masalah encoding saat parsing XML.
-    - name: Force UTF-8 Encoding for Build **<-- PERBAIKAN**
+        
+    # PERBAIKAN UTAMA UNTUK ERROR XML (Posisi 1)
+    - name: Force UTF-8 Encoding for Build
       run: |
         echo "LANG=en_US.UTF-8" >> $GITHUB_ENV
         echo "LC_ALL=en_US.UTF-8" >> $GITHUB_ENV
