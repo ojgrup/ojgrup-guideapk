@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager; // Tambahkan ini
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -34,6 +35,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // PERBAIKAN: Hapus flag fullscreen jika ada untuk memastikan layout menghormati status bar
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); 
+        // Pastikan status bar terlihat
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE); 
+        
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
@@ -42,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         // 2. Muat URL WebView
         viewUrl();
 
-        // 3. PERBAIKAN STABILITAS: Muat iklan hanya setelah SDK siap
+        // 3. Muat iklan
         MobileAds.initialize(this, initializationStatus -> {
             Log.d("AdMob", "AdMob SDK initialized. Starting ad loads.");
             loadBannerAd();
@@ -94,21 +100,19 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // PERBAIKAN TAMPILAN: Hanya suntikkan tinggi untuk placeholder
+    // Hanya suntikkan tinggi untuk placeholder
     private void injectAdPlaceholder() {
-        // Tinggi standard AdMob Banner (50dp) + margin (5dp)
+        // Tinggi standard AdMob Banner (50dp) + margin (5dp) = 55dp
         final int adHeightDp = 55; 
         float density = getResources().getDisplayMetrics().density;
         int adHeightPx = (int) (adHeightDp * density);
         
-        // Log untuk debugging nilai yang disuntikkan
         Log.d("Placeholder", "Injecting placeholder with height: " + adHeightPx + "px");
 
         String jsCode = "javascript:" +
             "var placeholder = document.getElementById('admob_placeholder');" +
             "if (placeholder) {" +
             "   placeholder.style.height = '" + adHeightPx + "px';" + 
-            // PASTIKAN TIDAK ADA TEKS ATAU MARGIN YANG DISALAHARTIKAN OLEH HTML
             "}";
         webView.loadUrl(jsCode);
     }
@@ -172,8 +176,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
              super.onPageFinished(view, url);
-             // PERBAIKAN: Hapus panggilan injectAdPlaceholder() di sini.
-             // Pemanggilan sudah dilakukan di onAdLoaded()
+             // PENTING: Panggilan injectAdPlaceholder() dihapus di sini
+             // karena hanya dipanggil di onAdLoaded()
         }
     }
     
