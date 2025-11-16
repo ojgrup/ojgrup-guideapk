@@ -54,7 +54,6 @@ jobs:
     # 3. INSTALASI KOMPONEN SDK 34 (Setelah environment disiapkan)
     - name: Install Android SDK Components (API 34) 🚀
       run: |
-        # Menggunakan 'yes |' untuk menerima lisensi secara otomatis
         yes | sdkmanager "platforms;android-34" "build-tools;34.0.0" 
 
     # 4. INSTALASI IMAGE MAGICK (Untuk perbaikan ikon AAPT2)
@@ -66,7 +65,6 @@ jobs:
         
     - name: Update Configs (Package Name, URL, dan App Name)
       run: |
-        # Menggunakan escape karakter untuk URL agar aman dari masalah Bash
         URL_INPUT=$(echo "${{ github.event.inputs.URL }}" | sed 's/[\/&]/\\&/g')
         
         # 1. Update Package Name
@@ -122,12 +120,10 @@ jobs:
         fi
 
         # 2. KONVERSI DAN OPTIMASI (Mengatasi Aapt2Exception)
-        # ImageMagick mengkonversi gambar ke PNG yang valid dan mengatur ukuran.
         ICON_DEST_DIR="app/src/main/res/mipmap-xxhdpi/" 
         mkdir -p $ICON_DEST_DIR
         
         echo "Converting and optimizing icon using ImageMagick..."
-        # Menggunakan -resize 96x96! (misalnya) untuk force resize dan format PNG yang bersih
         convert $TEMP_DIR/temp_icon.png -resize 96x96! $ICON_DEST_DIR/ic_launcher.png 
         convert $TEMP_DIR/temp_icon.png -resize 96x96! $ICON_DEST_DIR/ic_launcher_round.png
 
@@ -144,7 +140,14 @@ jobs:
         
     - name: Change Keystore Permissions
       run: chmod 777 app/release-key.jks
-        
+      
+    # 🌟 PERBAIKAN UTAMA UNTUK ERROR XML (Posisi 1)
+    # Memaksa lingkungan (locale) ke UTF-8 untuk menghindari masalah encoding saat parsing XML.
+    - name: Force UTF-8 Encoding for Build **<-- PERBAIKAN**
+      run: |
+        echo "LANG=en_US.UTF-8" >> $GITHUB_ENV
+        echo "LC_ALL=en_US.UTF-8" >> $GITHUB_ENV
+
     - name: Clean and Build APK and AAB (Release Signed)
       run: ./gradlew clean assembleRelease bundleRelease --no-daemon --stacktrace
         
