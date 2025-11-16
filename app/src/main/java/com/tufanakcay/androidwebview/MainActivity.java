@@ -18,7 +18,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback; // <--- IMPOR YANG BENAR UNTUK INTERSTITIAL
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback; 
 import com.google.android.gms.ads.FullScreenContentCallback;
 import android.util.Log;
 
@@ -37,17 +37,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        // 1. Inisialisasi tampilan (WebView dan Ad Containers)
+        // 1. Inisialisasi tampilan
         init();
         // 2. Muat URL WebView
         viewUrl(); 
 
-        // 3. PERBAIKAN CRASH: Inisialisasi AdMob, lalu muat iklan di callback
+        // 3. PERBAIKAN STABILITAS: Muat iklan hanya setelah SDK siap
         MobileAds.initialize(this, initializationStatus -> {
-            // SDK siap. Sekarang aman untuk memuat iklan.
             Log.d("AdMob", "AdMob SDK initialized. Starting ad loads.");
-            loadBannerAd();      // Muat iklan Banner
-            loadInterstitialAd(); // Muat iklan Interstitial pertama kali
+            loadBannerAd();      
+            loadInterstitialAd();
         });
     }
 
@@ -82,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAdLoaded() {
                 adContainer.setVisibility(View.VISIBLE); 
-                injectAdPlaceholder(); 
+                injectAdPlaceholder(); // Panggil placeholder
             }
 
             @Override
@@ -93,16 +92,16 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // PERBAIKAN TAMPILAN: Hapus margin-bottom (yang menghasilkan teks "20px")
     private void injectAdPlaceholder() {
-        final int adHeightDp = 50; 
+        final int adHeightDp = 50; // Tinggi standard AdMob Banner
         float density = getResources().getDisplayMetrics().density;
         int adHeightPx = (int) (adHeightDp * density); 
         
         String jsCode = "javascript:" +
             "var placeholder = document.getElementById('admob_placeholder');" +
             "if (placeholder) {" +
-            "   placeholder.style.height = '" + adHeightPx + "px';" + 
-            "   placeholder.style.marginBottom = '20px';" + 
+            "   placeholder.style.height = '" + adHeightPx + "px';" + // Hanya suntikkan tinggi
             "}";
         webView.loadUrl(jsCode);
     }
@@ -111,45 +110,38 @@ public class MainActivity extends AppCompatActivity {
         String jsCode = "javascript:" +
             "var placeholder = document.getElementById('admob_placeholder');" +
             "if (placeholder) {" +
-            "   placeholder.style.display = 'none';" +
+            "   placeholder.style.height = '0px';" +
             "}";
         webView.loadUrl(jsCode);
     }
     
     // =================================================================
-    // LOGIKA ADMOB INTERSTITIAL
+    // LOGIKA ADMOB INTERSTITIAL (Tidak diubah, sudah stabil)
     // =================================================================
     private void loadInterstitialAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
 
-        // PERBAIKAN KOMPILASI: Menggunakan InterstitialAdLoadCallback yang benar
         InterstitialAd.load(this, "ca-app-pub-3940256099942544/1033173712", 
             adRequest, new InterstitialAdLoadCallback() { 
                 @Override
                 public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
                     mInterstitialAd = interstitialAd;
-                    Log.d("AdMob", "Interstitial Ad Loaded.");
-                    // Set callback agar iklan dapat memicu goBack() setelah ditutup
                     setInterstitialAdCallback(); 
                 }
 
                 @Override
                 public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
                     mInterstitialAd = null;
-                    Log.e("AdMob", "Interstitial Ad Failed to Load: " + loadAdError.getMessage());
                 }
             });
     }
 
-    // Metode untuk mengatur callback penutupan iklan
     private void setInterstitialAdCallback() {
         if (mInterstitialAd != null) {
             mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
                 @Override
                 public void onAdDismissedFullScreenContent() {
-                    // Setelah iklan ditutup, lakukan aksi aslinya (kembali)
                     webView.goBack();
-                    // Muat ulang iklan untuk siklus berikutnya
                     loadInterstitialAd(); 
                 }
             });
@@ -166,7 +158,6 @@ public class MainActivity extends AppCompatActivity {
                  view.loadUrl(url);
                  return true; 
             }
-            // Izinkan link lain (eksternal) dibuka di luar WebView
             return false;
         }
         
@@ -187,21 +178,17 @@ public class MainActivity extends AppCompatActivity {
                 backPressCount++;
                 
                 if (backPressCount >= AD_SHOW_THRESHOLD && mInterstitialAd != null) {
-                    
-                    // Tampilkan Interstitial Ad
                     mInterstitialAd.show(MainActivity.this);
                     backPressCount = 0; 
                     return true;
                     
                 } else {
-                    // Jika threshold belum tercapai atau iklan belum dimuat
                     webView.goBack();
                     return true;
                 }
             }
         }
         
-        // Jika tidak bisa kembali di WebView, biarkan sistem menangani (keluar aplikasi)
         return super.onKeyDown(keyCode, event);
     }
 }
