@@ -6,14 +6,17 @@
     xmlns:ads="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:fitsSystemWindows="true"  tools:context=".MainActivity">
 
     <FrameLayout
         android:id="@+id/ad_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         
-        android:paddingTop="25dp"       android:background="#000000"     app:layout_constraintEnd_toEndOf="parent"
+        android:paddingTop="25dp"       
+        android:background="#000000"     
+        
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:visibility="gone" >
@@ -31,7 +34,7 @@
         android:id="@+id/webView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:fitsSystemWindows="true"  android:clipToPadding="true"      app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/ad_container" />
