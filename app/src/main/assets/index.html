@@ -16,72 +16,13 @@
         overflow-x: hidden;
       }
 
-      /* ================================================= */
-      /* PLACEHOLDER IKLAN: Harus kosong dari margin/padding */
-      /* ================================================= */
-      #admob_placeholder {
-        background-color: transparent;
-        margin: 0; 
-        padding: 0;
-      }
-
       /* ========================================= */
-      /* 2. SLIDER PEMBUKA (OVERLAY) */
-      /* (Tetap dipertahankan) */
-      /* ========================================= */
-      #introSlider {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: #007bff;
-        color: white;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        z-index: 1000;
-        transition: opacity 0.5s ease;
-      }
-
-      /* ... (CSS slider lainnya) ... */
-      .slider-content {
-        padding: 20px;
-        max-width: 80%;
-      }
-      .slider-content h1 {
-        font-size: 2.5em;
-        margin-bottom: 10px;
-      }
-      .slider-content p {
-        font-size: 1.2em;
-        margin-bottom: 30px;
-      }
-      #startButton {
-        padding: 12px 30px;
-        font-size: 1.1em;
-        border: none;
-        border-radius: 8px;
-        background-color: #28a745;
-        color: white;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
-      #startButton:hover {
-        background-color: #218838;
-      }
-
-      /* ========================================= */
-      /* 3. MENU KARTU */
+      /* 2. MENU KARTU */
       /* ========================================= */
       #mainContent {
-        display: none;
-        opacity: 0;
-        transition: opacity 0.5s ease;
+        display: block; /* Selalu tampil */
+        opacity: 1;
         width: 100%;
-        /* PENTING: Hapus padding-top/margin-top di sini */
       }
 
       .page-header {
@@ -94,6 +35,9 @@
         width: 100%;
         padding: 20px;
         box-sizing: border-box;
+        
+        /* 💡 PERBAIKAN KRUSIAL: Tambahkan margin-top untuk membuat ruang di bawah AdMob */
+        margin-top: 55px; 
       }
 
       .card-grid {
@@ -157,13 +101,6 @@
     </style>
   </head>
   <body>
-    <div id="introSlider">
-      <div class="slider-content">
-        <h1>Selamat Datang di Panduan!</h1>
-        <p>Jelajahi panduan langkah demi langkah kami. Klik tombol di bawah untuk memulai.</p>
-        <button id="startButton">Mulai Sekarang</button>
-      </div>
-    </div>
     <div id="mainContent">
       <div class="card-container">
         <div class="card-grid">
@@ -176,11 +113,9 @@
           <a href="detail_langkah2.html" class="card-link" id="card_target_2">
             <div class="card">
               <img src="https://via.placeholder.com/50/28a745/ffffff?text=2" alt="Langkah 2" class="card-image">
-              <h2 class="card-title">2. Persiapan Infrastruktur Sistem</h2>
+              <h2 class="card-title">2. Persiapan Infrastruktur Sistem (Diatas Iklan)</h2>
             </div>
           </a>
-          
-          <div id="admob_placeholder"></div> 
           
           <a href="detail_langkah3.html" class="card-link">
             <div class="card">
@@ -209,26 +144,5 @@
         </div>
       </div>
     </div>
-    <script>
-      // SCRIPT SLIDER INI MASIH DIJALANKAN
-      document.getElementById('startButton').addEventListener('click', function() {
-        const slider = document.getElementById('introSlider');
-        const content = document.getElementById('mainContent');
-        
-        slider.style.opacity = '0';
-        
-        setTimeout(() => {
-          slider.style.display = 'none';
-          content.style.display = 'block';
-          
-          setTimeout(() => {
-            content.style.opacity = '1';
-          }, 10);
-        }, 500);
-      });
-      
-      // Catatan: Jika Anda tidak ingin menggunakan slider, Anda bisa menghapus div introSlider dan script ini.
-      // Jika dihapus, fungsi showContent() di Java yang akan memastikan konten tampil di awal.
-    </script>
   </body>
 </html>
