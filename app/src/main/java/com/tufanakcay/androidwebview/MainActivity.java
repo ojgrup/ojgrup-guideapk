@@ -11,6 +11,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+import android.util.Log;
 
 // IKLAN ADMOB IMPORTS
 import com.google.android.gms.ads.MobileAds;
@@ -21,7 +22,6 @@ import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.gms.ads.FullScreenContentCallback;
-import android.util.Log;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // PERBAIKAN LAYOUT KRUSIAL
+        // PERBAIKAN LAYOUT KRUSIAL: Menghapus flag fullscreen untuk menghormati layout XML
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); 
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE); 
         
@@ -44,12 +44,13 @@ public class MainActivity extends AppCompatActivity {
         
         // 1. Inisialisasi tampilan
         init();
+        
+        // Pembersihan Cache (Langkah terakhir untuk mengatasi masalah caching WebView)
+        webView.clearCache(true); 
+
         // 2. Muat URL WebView
         viewUrl();
-
-        // PENTING: Panggil fungsi ini untuk memastikan konten ditampilkan
-        showContent(); 
-
+        
         // 3. Muat iklan
         MobileAds.initialize(this, initializationStatus -> {
             Log.d("AdMob", "AdMob SDK initialized. Starting ad loads.");
@@ -79,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // =================================================================
-    // LOGIKA ADMOB BANNER
+    // LOGIKA ADMOB BANNER (TANPA INJEKSI JAVASCRIPT)
     // =================================================================
     private void loadBannerAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
@@ -89,63 +90,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAdLoaded() {
                 Log.d("AdMob", "Banner Ad Loaded. Showing container.");
+                // HANYA MENGATUR VISIBILITAS FRAME
                 adContainer.setVisibility(View.VISIBLE);
-                injectAdPlaceholder(); // Panggil placeholder untuk buat ruang di HTML
             }
 
             @Override
             public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
                 Log.e("AdMob", "Banner failed to load: " + loadAdError.getMessage());
+                // HANYA MENGATUR VISIBILITAS FRAME
                 adContainer.setVisibility(View.GONE);
-                removeAdPlaceholder(); // Hapus placeholder
             }
         });
     }
 
-    // Fungsi untuk memaksa #mainContent tampil
-    private void showContent() {
-        String jsCode = "javascript:" +
-            "var content = document.getElementById('mainContent');" +
-            "if (content) {" +
-            "   content.style.display = 'block';" +
-            "   setTimeout(function(){ content.style.opacity = '1'; }, 100);" + 
-            "}";
-        webView.loadUrl(jsCode);
-    }
-
-    // PERBAIKAN KRUSIAL UNTUK MENGHILANGKAN TEKS DEBUG ("165px")
-    private void injectAdPlaceholder() {
-        final int adHeightDp = 55; 
-        float density = getResources().getDisplayMetrics().density;
-        int adHeightPx = (int) (adHeightDp * density);
-        
-        Log.d("Placeholder", "Injecting placeholder with height: " + adHeightPx + "px");
-
-        String jsCode = "javascript:" +
-            "try {" +
-            "   var placeholder = document.getElementById('admob_placeholder');" +
-            "   if (placeholder) {" +
-            "       placeholder.style.height = '" + adHeightPx + "px';" + 
-            "   }" +
-            "} catch (e) { console.error('Gagal injeksi Ad placeholder:', e); }";
-        webView.loadUrl(jsCode);
-        
-        // Memastikan konten ditampilkan lagi setelah placeholder disuntikkan
-        showContent();
-    }
-    
-    // PERBAIKAN KRUSIAL UNTUK MENGHILANGKAN TEKS DEBUG ("165px")
-    private void removeAdPlaceholder() {
-        Log.d("Placeholder", "Removing placeholder height.");
-        String jsCode = "javascript:" +
-            "try {" +
-            "   var placeholder = document.getElementById('admob_placeholder');" +
-            "   if (placeholder) {" +
-            "      placeholder.style.height = '0px';" +
-            "   }" +
-            "} catch (e) { console.error('Gagal menghapus Ad placeholder:', e); }";
-        webView.loadUrl(jsCode);
-    }
+    // FUNGSI INJEKSI PLACEHOLDER DIHAPUS SEPENUHNYA
+    // FUNGSI showContent() DIHAPUS SEPENUHNYA
     
     // =================================================================
     // LOGIKA ADMOB INTERSTITIAL
