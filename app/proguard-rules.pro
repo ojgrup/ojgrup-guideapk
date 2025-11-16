@@ -19,3 +19,15 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+
+# ==========================================================
+# ATURAN WAJIB UNTUK GOOGLE MOBILE ADS (ADMOB)
+# Ini mencegah penghapusan/obfuskasi kode yang diperlukan oleh SDK AdMob.
+# ==========================================================
+-keep public class com.google.android.gms.ads.** {
+    public *;
+}
+-keep public class com.google.ads.** {
+    public *;
+}
