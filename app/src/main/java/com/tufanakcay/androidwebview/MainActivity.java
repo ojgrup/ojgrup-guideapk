@@ -18,7 +18,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback; 
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import android.util.Log;
 
@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private FrameLayout adContainer;
     
     private InterstitialAd mInterstitialAd;
-    private int backPressCount = 0; 
+    private int backPressCount = 0;
     private static final int AD_SHOW_THRESHOLD = 2;
 
     @Override
@@ -40,33 +40,33 @@ public class MainActivity extends AppCompatActivity {
         // 1. Inisialisasi tampilan
         init();
         // 2. Muat URL WebView
-        viewUrl(); 
+        viewUrl();
 
         // 3. PERBAIKAN STABILITAS: Muat iklan hanya setelah SDK siap
         MobileAds.initialize(this, initializationStatus -> {
             Log.d("AdMob", "AdMob SDK initialized. Starting ad loads.");
-            loadBannerAd();      
+            loadBannerAd();
             loadInterstitialAd();
         });
     }
 
     private void init() {
-        webView = findViewById(R.id.webView); 
+        webView = findViewById(R.id.webView);
         mAdView = findViewById(R.id.ad_view);
         adContainer = findViewById(R.id.ad_container);
     }
 
     private void viewUrl() {
-        String localAssetUrl = "file:///android_asset/index.html"; 
+        String localAssetUrl = "file:///android_asset/index.html";
         WebSettings webSettings = webView.getSettings();
 
         webSettings.setJavaScriptEnabled(true);
-        webSettings.setDomStorageEnabled(true); 
+        webSettings.setDomStorageEnabled(true);
         webSettings.setCacheMode(WebSettings.LOAD_NORMAL);
-        webSettings.setBuiltInZoomControls(false); 
+        webSettings.setBuiltInZoomControls(false);
         webSettings.setDisplayZoomControls(false);
         
-        webView.setWebViewClient(new CustomWebViewClient()); 
+        webView.setWebViewClient(new CustomWebViewClient());
         webView.loadUrl(localAssetUrl);
     }
     
@@ -80,33 +80,41 @@ public class MainActivity extends AppCompatActivity {
         mAdView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
-                adContainer.setVisibility(View.VISIBLE); 
-                injectAdPlaceholder(); // Panggil placeholder
+                Log.d("AdMob", "Banner Ad Loaded. Showing container.");
+                adContainer.setVisibility(View.VISIBLE);
+                injectAdPlaceholder(); // Panggil placeholder untuk buat ruang di HTML
             }
 
             @Override
             public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                Log.e("AdMob", "Banner failed to load: " + loadAdError.getMessage());
                 adContainer.setVisibility(View.GONE);
-                removeAdPlaceholder(); 
+                removeAdPlaceholder(); // Hapus placeholder
             }
         });
     }
 
-    // PERBAIKAN TAMPILAN: Hapus margin-bottom (yang menghasilkan teks "20px")
+    // PERBAIKAN TAMPILAN: Hanya suntikkan tinggi untuk placeholder
     private void injectAdPlaceholder() {
-        final int adHeightDp = 50; // Tinggi standard AdMob Banner
+        // Tinggi standard AdMob Banner (50dp) + margin (5dp)
+        final int adHeightDp = 55; 
         float density = getResources().getDisplayMetrics().density;
-        int adHeightPx = (int) (adHeightDp * density); 
+        int adHeightPx = (int) (adHeightDp * density);
         
+        // Log untuk debugging nilai yang disuntikkan
+        Log.d("Placeholder", "Injecting placeholder with height: " + adHeightPx + "px");
+
         String jsCode = "javascript:" +
             "var placeholder = document.getElementById('admob_placeholder');" +
             "if (placeholder) {" +
-            "   placeholder.style.height = '" + adHeightPx + "px';" + // Hanya suntikkan tinggi
+            "   placeholder.style.height = '" + adHeightPx + "px';" + 
+            // PASTIKAN TIDAK ADA TEKS ATAU MARGIN YANG DISALAHARTIKAN OLEH HTML
             "}";
         webView.loadUrl(jsCode);
     }
     
     private void removeAdPlaceholder() {
+        Log.d("Placeholder", "Removing placeholder height.");
         String jsCode = "javascript:" +
             "var placeholder = document.getElementById('admob_placeholder');" +
             "if (placeholder) {" +
@@ -116,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // =================================================================
-    // LOGIKA ADMOB INTERSTITIAL (Tidak diubah, sudah stabil)
+    // LOGIKA ADMOB INTERSTITIAL
     // =================================================================
     private void loadInterstitialAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
@@ -126,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
                     mInterstitialAd = interstitialAd;
-                    setInterstitialAdCallback(); 
+                    setInterstitialAdCallback();
                 }
 
                 @Override
@@ -142,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onAdDismissedFullScreenContent() {
                     webView.goBack();
-                    loadInterstitialAd(); 
+                    loadInterstitialAd();
                 }
             });
         }
@@ -156,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             if (url.startsWith("file:///android_asset/")) {
                  view.loadUrl(url);
-                 return true; 
+                 return true;
             }
             return false;
         }
@@ -164,9 +172,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
              super.onPageFinished(view, url);
-             if (url.contains("index.html") && adContainer.getVisibility() == View.VISIBLE) {
-                 injectAdPlaceholder();
-             }
+             // PERBAIKAN: Hapus panggilan injectAdPlaceholder() di sini.
+             // Pemanggilan sudah dilakukan di onAdLoaded()
         }
     }
     
@@ -179,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
                 
                 if (backPressCount >= AD_SHOW_THRESHOLD && mInterstitialAd != null) {
                     mInterstitialAd.show(MainActivity.this);
-                    backPressCount = 0; 
+                    backPressCount = 0;
                     return true;
                     
                 } else {
