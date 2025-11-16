@@ -18,7 +18,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback; // <--- IMPOR YANG BENAR
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback; // <--- IMPOR YANG BENAR UNTUK INTERSTITIAL
 import com.google.android.gms.ads.FullScreenContentCallback;
 import android.util.Log;
 
@@ -37,14 +37,18 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        MobileAds.initialize(this, initializationStatus -> {
-            // SDK siap
-        });
-
+        // 1. Inisialisasi tampilan (WebView dan Ad Containers)
         init();
-        viewUrl();
-        loadBannerAd();    
-        loadInterstitialAd();
+        // 2. Muat URL WebView
+        viewUrl(); 
+
+        // 3. PERBAIKAN CRASH: Inisialisasi AdMob, lalu muat iklan di callback
+        MobileAds.initialize(this, initializationStatus -> {
+            // SDK siap. Sekarang aman untuk memuat iklan.
+            Log.d("AdMob", "AdMob SDK initialized. Starting ad loads.");
+            loadBannerAd();      // Muat iklan Banner
+            loadInterstitialAd(); // Muat iklan Interstitial pertama kali
+        });
     }
 
     private void init() {
@@ -118,14 +122,14 @@ public class MainActivity extends AppCompatActivity {
     private void loadInterstitialAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
 
-        // Perbaikan: Ganti AdLoadCallback menjadi InterstitialAdLoadCallback
+        // PERBAIKAN KOMPILASI: Menggunakan InterstitialAdLoadCallback yang benar
         InterstitialAd.load(this, "ca-app-pub-3940256099942544/1033173712", 
-            adRequest, new InterstitialAdLoadCallback() { // <--- PERBAIKAN DI SINI!
+            adRequest, new InterstitialAdLoadCallback() { 
                 @Override
                 public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
                     mInterstitialAd = interstitialAd;
                     Log.d("AdMob", "Interstitial Ad Loaded.");
-                    // Opsional: set FullScreenContentCallback di sini saat iklan dimuat
+                    // Set callback agar iklan dapat memicu goBack() setelah ditutup
                     setInterstitialAdCallback(); 
                 }
 
@@ -137,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
             });
     }
 
-    // Metode baru untuk mengatur callback iklan
+    // Metode untuk mengatur callback penutupan iklan
     private void setInterstitialAdCallback() {
         if (mInterstitialAd != null) {
             mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
@@ -162,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
                  view.loadUrl(url);
                  return true; 
             }
+            // Izinkan link lain (eksternal) dibuka di luar WebView
             return false;
         }
         
@@ -185,20 +190,18 @@ public class MainActivity extends AppCompatActivity {
                     
                     // Tampilkan Interstitial Ad
                     mInterstitialAd.show(MainActivity.this);
-                    
-                    // setFullScreenContentCallback sudah dipindahkan ke loadInterstitialAd()
-                    
                     backPressCount = 0; 
                     return true;
                     
                 } else {
-                    // Jika iklan tidak tersedia atau threshold belum tercapai, kembali normal
+                    // Jika threshold belum tercapai atau iklan belum dimuat
                     webView.goBack();
                     return true;
                 }
             }
         }
         
+        // Jika tidak bisa kembali di WebView, biarkan sistem menangani (keluar aplikasi)
         return super.onKeyDown(keyCode, event);
     }
 }
