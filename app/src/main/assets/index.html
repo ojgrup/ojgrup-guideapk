@@ -15,73 +15,10 @@
           background-color: #f4f4f9;
           overflow-x: hidden;
       }
-      /* ========================================= */
-      /* 2. OVERLAY SPLASH SCREEN - FULL SCREEN */
-      /* ========================================= */
-      #splashOverlay {
-          position: fixed; 
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100vh; 
-          background-color: #e6f7ff; 
-          z-index: 1000; 
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          transition: opacity 0.5s ease;
-      }
       
       /* ========================================= */
-      /* 3. SINGLE SLIDE STYLE */
+      /* 2. MENU KARTU (KONTEN UTAMA) */
       /* ========================================= */
-      #sliderContainer {
-          width: 100%; 
-          max-width: 900px;
-          padding: 0;
-          box-sizing: border-box;
-      }
-
-      .slider-item {
-          width: 100%;
-          height: 100vh; 
-          background-color: #e6f7ff; 
-          border-radius: 0;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          text-align: center;
-          padding: 40px;
-          box-sizing: border-box;
-      }
-      
-      .slider-title { font-size: 2em; color: #333; margin-bottom: 20px; }
-      .slider-subtitle { font-size: 1.1em; color: #666; margin-bottom: 30px; }
-      .slider-button {
-          padding: 15px 30px;
-          background-color: #007bff;
-          color: white;
-          text-decoration: none;
-          font-size: 1.5em;
-          font-weight: bold;
-          border-radius: 10px;
-          cursor: pointer;
-          border: none;
-          transition: background-color 0.3s ease;
-      }
-      .slider-button:active { background-color: #0056b3; }
-
-      /* ========================================= */
-      /* 4. MENU KARTU (KONTEN UTAMA) */
-      /* ========================================= */
-      #mainContent {
-        display: none; 
-        opacity: 0;
-        transition: opacity 0.5s ease;
-        width: 100%;
-      }
-
       .card-container {
         width: 100%;
         padding: 20px; 
@@ -96,7 +33,7 @@
         margin: 0 auto;
       }
 
-      /* KOREKSI: Ruang kosong untuk iklan native (tanpa tampilan visual) */
+      /* Ruang kosong untuk iklan native (tinggi nol) */
       .ad-placeholder {
         height: 0px; 
         background-color: transparent;
@@ -122,36 +59,16 @@
     </style>
 
     <script>
-        function showMainContent() {
-            const splash = document.getElementById('splashOverlay');
-            const mainContent = document.getElementById('mainContent');
-            
-            splash.style.opacity = '0';
-            mainContent.style.display = 'block';
-            
-            setTimeout(() => {
-                splash.style.display = 'none';
-                mainContent.style.opacity = '1';
-                
-                if (window.Android && Android.loadAllInlineAds) {
-                   Android.loadAllInlineAds(); 
-                }
-            }, 500);
-        }
+        // Fungsi ini tidak perlu dipanggil di sini, karena sudah dipanggil dari Java setelah loading index.html
+        // Namun, jika Anda ingin memastikan, Anda bisa memanggilnya di sini:
+        // window.onload = function() {
+        //     if (window.Android && Android.loadAllInlineAds) {
+        //         Android.loadAllInlineAds(); 
+        //     }
+        // };
     </script>
   </head>
   <body>
-    <div id="splashOverlay">
-        <div id="sliderContainer">
-            <div class="slider-item">
-                <h2 class="slider-title">Aplikasi Panduan Terbaik</h2>
-                <p class="slider-subtitle">Temukan semua langkah dan strategi yang Anda butuhkan.</p>
-                <button class="slider-button" onclick="showMainContent();">
-                    MASUK KE KONTEN
-                </button>
-            </div>
-        </div>
-    </div>
     <div id="mainContent">
       <div class="card-container">
         <div class="card-grid">
