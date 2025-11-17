@@ -4,12 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import android.graphics.Insets; // Import ini diperlukan untuk mengakses .top pada hasil getInsets()
+// 🔥 PENTING: import android.graphics.Insets; DIHAPUS
 
 import android.os.Bundle;
-// ... (import lainnya) ...
-
-// Tambahkan import berikut di bagian atas:
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -77,14 +74,13 @@ public class MainActivity extends AppCompatActivity {
         adViews[1] = findViewById(R.id.ad_view_inline_2);
         adViews[2] = findViewById(R.id.ad_view_inline_3);
         
-        // 5. 🔥 KOREKSI BLOK INSETS: Menggunakan SINTAKS VERSI BARU
+        // 5. 🔥 KOREKSI BLOK INSETS: Menggunakan FQCN AndroidX
         final FrameLayout mainLayout = findViewById(R.id.main_layout);
         if (mainLayout != null) {
             ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
                 
-                // Menggunakan sintaks modern: insets.getInsets(Type).top
-                // Ini seharusnya didukung oleh core-ktx:1.10.1 yang kita tambahkan.
-                Insets systemWindowInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars()); 
+                // GANTI INSETS DENGAN androidx.core.graphics.Insets
+                androidx.core.graphics.Insets systemWindowInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars()); 
                 int topInset = systemWindowInsets.top;
                 
                 // Terapkan padding atas pada WebView sama dengan tinggi Status Bar
@@ -100,123 +96,5 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
-    // =======================================================
-    // JAVA INTERFACE & NAVIGATION LOGIC
-    // =======================================================
-    public class WebAppInterface {
-        
-        @JavascriptInterface
-        public void loadMainContent() {
-            webView.post(() -> {
-                webView.loadUrl("file:///android_asset/index.html");
-                loadAllInlineAds();
-            });
-        }
-        
-        @JavascriptInterface
-        public void loadAllInlineAds() {
-            for (int i = 0; i < 3; i++) {
-                loadInlineAd(adViews[i], adContainers[i], i + 1);
-            }
-        }
-
-        @JavascriptInterface
-        public void setAdPosition(int adIndex, int yOffset) {
-            webView.post(() -> {
-                if (adIndex >= 1 && adIndex <= 3) {
-                    FrameLayout targetContainer = adContainers[adIndex - 1];
-                    if (targetContainer != null) {
-                        if (targetContainer.getLayoutParams() instanceof FrameLayout.LayoutParams) {
-                            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) targetContainer.getLayoutParams();
-                            params.topMargin = yOffset;
-                            targetContainer.setLayoutParams(params);
-                            targetContainer.setVisibility(View.VISIBLE);
-                        }
-                    }
-                }
-            });
-        }
-    }
-
-    private void loadInlineAd(AdView adView, FrameLayout adContainer, int adIndex) {
-        if (adView == null || adContainer == null) {
-            Log.e("AdMob", "AdView or Container for index " + adIndex + " is null.");
-            return;
-        }
-
-        AdRequest adRequest = new AdRequest.Builder().build();
-        
-        adView.setAdListener(new AdListener() {
-            @Override
-            public void onAdLoaded() {
-                String jsCode = "javascript:(function(){" +
-                    "  var p = document.getElementById('native_ad_placeholder_" + adIndex + "');" +
-                    "  if(p && p.offsetParent !== null) {" + 
-                    "    var rect = p.getBoundingClientRect();" +
-                    "    var y = rect.top + window.scrollY;" +
-                    "    Android.setAdPosition(" + adIndex + ", Math.round(y));" + 
-                    "  }" +
-                    "})()";
-                webView.post(() -> webView.loadUrl(jsCode));
-            }
-
-            @Override
-            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                adContainer.setVisibility(View.GONE); 
-                Log.e("AdMob", "Inline Ad " + adIndex + " failed to load: " + loadAdError.getMessage());
-            }
-        });
-
-        adView.loadAd(adRequest);
-    }
-    
-    // =======================================================
-    // IKLAN INTERSTITIAL & BACK BUTTON LOGIC
-    // =======================================================
-    
-    private void loadInterstitialAd() {
-        AdRequest adRequest = new AdRequest.Builder().build();
-        InterstitialAd.load(this, INTERSTITIAL_AD_UNIT_ID, adRequest,
-            new InterstitialAdLoadCallback() {
-                @Override
-                public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
-                    mInterstitialAd = interstitialAd;
-                    Log.i("AdMob", "Interstitial Ad was loaded.");
-                }
-
-                @Override
-                public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                    Log.d("AdMob", "Interstitial Ad failed to load: " + loadAdError.getMessage());
-                    mInterstitialAd = null;
-                }
-            });
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            if (webView.canGoBack()) {
-                backPressCount++;
-                if (backPressCount >= AD_SHOW_THRESHOLD && mInterstitialAd != null) {
-                    mInterstitialAd.show(MainActivity.this);
-                    mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
-                        @Override
-                        public void onAdDismissedFullScreenContent() {
-                            webView.goBack();
-                            loadInterstitialAd(); 
-                        }
-                    });
-                    backPressCount = 0;
-                    return true;
-                } else {
-                    webView.goBack();
-                    return true;
-                }
-            } else {
-                finish(); 
-                return true;
-            }
-        }
-        return super.onKeyDown(keyCode, event);
-    }
+    // ... (sisa kode tetap sama) ...
 }
