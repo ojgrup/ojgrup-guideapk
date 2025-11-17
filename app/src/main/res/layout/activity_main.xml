@@ -21,7 +21,7 @@
             android:layout_gravity="center_horizontal"
             app:adSize="MEDIUM_RECTANGLE"
             app:adUnitId="ca-app-pub-3940256099942544/3986624511" /> 
-            </FrameLayout>
+    </FrameLayout>
     
     <FrameLayout
         android:id="@+id/ad_container_inline_2" 
