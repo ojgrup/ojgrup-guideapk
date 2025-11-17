@@ -30,7 +30,8 @@ public class MainActivity extends AppCompatActivity {
     private InterstitialAd mInterstitialAd;
     private int backPressCount = 0;
     private static final int AD_SHOW_THRESHOLD = 2; 
-    private static final String INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"; // TEST ID
+    // GANTI DENGAN ID INTERSTITIAL ASLI ANDA
+    private static final String INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"; 
 
     private FrameLayout[] adContainers = new FrameLayout[3];
     private AdView[] adViews = new AdView[3];
@@ -52,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         webView.addJavascriptInterface(new WebAppInterface(), "Android"); 
         
-        // 2. Muat URL AWAL (Splash Screen)
+        // 2. Muat URL AWAL
         webView.setWebViewClient(new WebViewClient());
         webView.loadUrl("file:///android_asset/splash.html"); 
 
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         adViews[1] = findViewById(R.id.ad_view_inline_2);
         adViews[2] = findViewById(R.id.ad_view_inline_3);
         
-        // 5. BLOK INSETS DENGAN FQCN: Mengatasi masalah 'incompatible types' dan bottom navigation
+        // 5. BLOK INSETS: Mengatasi masalah konten WebView tertutup Status Bar
         final FrameLayout mainLayout = findViewById(R.id.main_layout);
         if (mainLayout != null) {
             // Menggunakan FQCN untuk ViewCompat
@@ -82,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
                 int topInset = systemWindowInsets.top;
                 
                 // Terapkan padding atas pada WebView sama dengan tinggi Status Bar
-                // Kita akan mengatur padding pada WebView, bukan pada mainLayout
                 webView.setPadding(
                     webView.getPaddingLeft(), 
                     topInset, 
@@ -90,19 +90,19 @@ public class MainActivity extends AppCompatActivity {
                     webView.getPaddingBottom()
                 );
                 
-                // 🔥 Meminta insets untuk diterapkan kembali pada WebView (mungkin membantu timing)
+                // Meminta insets untuk diterapkan kembali pada WebView (untuk timing)
                 webView.requestApplyInsets();
 
-                return insets; // Mengembalikan insets agar tidak dikonsumsi oleh FrameLayout
+                return insets; 
             });
         }
         
-        // 🔥 Pastikan WebView juga meminta insets saat pertama kali dibuat
+        // Pastikan WebView juga meminta insets saat pertama kali dibuat
         webView.post(webView::requestApplyInsets);
     }
     
     // =======================================================
-    // JAVA INTERFACE & NAVIGATION LOGIC
+    // JAVA INTERFACE & LOGIKA IKLAN INLINE
     // =======================================================
     public class WebAppInterface {
         
@@ -150,11 +150,12 @@ public class MainActivity extends AppCompatActivity {
         adView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
-                // Setelah iklan dimuat, kita bisa memposisikannya
+                // Setelah iklan dimuat, panggil JS untuk memposisikannya
                 String jsCode = "javascript:(function(){" +
                     "  var p = document.getElementById('native_ad_placeholder_" + adIndex + "');" +
                     "  if(p && p.offsetParent !== null) {" + 
                     "    var rect = p.getBoundingClientRect();" +
+                    // Menggunakan rect.top + window.scrollY untuk mendapatkan posisi Y absolut
                     "    var y = rect.top + window.scrollY;" +
                     "    Android.setAdPosition(" + adIndex + ", Math.round(y));" + 
                     "  }" +
@@ -173,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // =======================================================
-    // IKLAN INTERSTITIAL & BACK BUTTON LOGIC
+    // LOGIKA IKLAN INTERSTITIAL & BACK BUTTON 
     // =======================================================
     
     private void loadInterstitialAd() {
