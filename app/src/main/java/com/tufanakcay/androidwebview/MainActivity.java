@@ -1,4 +1,4 @@
-package com.example.webviewapp; // Ganti dengan package name Anda
+package com.tufanakcay.androidwebview; // Package Anda sudah benar
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,6 +15,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
+import com.tufanakcay.androidwebview.R; // KOREKSI: Import R eksplisit
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -39,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Memastikan aplikasi menggunakan layout fullscreen untuk menghitung insets dengan benar
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
@@ -54,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
         
         // 2. Muat URL AWAL (Splash Screen)
         webView.setWebViewClient(new WebViewClient());
-        // MEMUAT SPLASH.HTML SAAT START
         webView.loadUrl("file:///android_asset/splash.html"); 
 
         // 3. Inisialisasi AdMob
@@ -72,13 +71,14 @@ public class MainActivity extends AppCompatActivity {
         adViews[1] = findViewById(R.id.ad_view_inline_2);
         adViews[2] = findViewById(R.id.ad_view_inline_3);
         
-        // 5. KOREKSI: Penyesuaian Insets untuk Memposisikan Konten di bawah Status Bar
+        // 5. Penyesuaian Insets untuk Memposisikan Konten
         final FrameLayout mainLayout = findViewById(R.id.main_layout);
         if (mainLayout != null) {
             ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
                 WindowInsetsCompat systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
                 
-                int topInset = systemInsets.top;
+                // KOREKSI SINTAKS DI SINI: Mengganti .top dengan .getTop()
+                int topInset = systemInsets.getTop(); 
                 
                 // Terapkan padding atas pada WebView sama dengan tinggi Status Bar
                 webView.setPadding(
@@ -93,24 +93,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
-    // =======================================================
-    // JAVA INTERFACE & NAVIGATION LOGIC
-    // =======================================================
+    // ... (Sisa kode WebAppInterface, loadInlineAd, loadInterstitialAd, dan onKeyDown) ...
+    // ... (Semua fungsi di bawah ini tidak berubah) ...
+
     public class WebAppInterface {
         
-        // Dipanggil dari splash.html
         @JavascriptInterface
         public void loadMainContent() {
             webView.post(() -> {
-                // Memuat index.html (Daftar Kartu Konten)
                 webView.loadUrl("file:///android_asset/index.html");
-                
-                // Iklan dimuat di sini setelah index.html dimuat
                 loadAllInlineAds();
             });
         }
         
-        // Dipanggil setelah index.html dimuat
         @JavascriptInterface
         public void loadAllInlineAds() {
             for (int i = 0; i < 3; i++) {
@@ -147,7 +142,6 @@ public class MainActivity extends AppCompatActivity {
         adView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
-                // Iklan berhasil dimuat, panggil JS untuk pemosisian
                 String jsCode = "javascript:(function(){" +
                     "  var p = document.getElementById('native_ad_placeholder_" + adIndex + "');" +
                     "  if(p && p.offsetParent !== null) {" + 
@@ -168,10 +162,6 @@ public class MainActivity extends AppCompatActivity {
 
         adView.loadAd(adRequest);
     }
-    
-    // =======================================================
-    // IKLAN INTERSTITIAL & BACK BUTTON LOGIC
-    // =======================================================
     
     private void loadInterstitialAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
