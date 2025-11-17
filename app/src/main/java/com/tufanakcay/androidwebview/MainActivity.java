@@ -12,17 +12,20 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.util.Log;
-import android.webkit.JavascriptInterface;
+import android.webkit.JavascriptInterface; // Import KRUSIAL untuk komunikasi JS
 
+// ===================================
+// IMPORTS ADMOB
+// ===================================
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdListener;
-import com.google.gms.ads.AdSize;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.gms.ads.FullScreenContentCallback;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Menghilangkan flag fullscreen untuk memastikan layout status bar/iklan atas tampil benar
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); 
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE); 
         
@@ -50,13 +54,15 @@ public class MainActivity extends AppCompatActivity {
         
         init();
         
+        // Membersihkan cache WebView 
         webView.clearCache(true); 
         viewUrl(); 
 
+        // Inisialisasi AdMob dan muat iklan
         MobileAds.initialize(this, initializationStatus -> {
             Log.d("AdMob", "AdMob SDK initialized. Starting ad loads.");
-            loadBannerAdTop();      // Memuat Iklan Banner Atas
-            loadBannerAdInline();   // Memuat Iklan In-Feed/Native
+            loadBannerAdTop();      
+            loadBannerAdInline();   
             loadInterstitialAd();
         });
     }
@@ -83,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setBuiltInZoomControls(false);
         webSettings.setDisplayZoomControls(false);
         
+        // Tambahkan interface untuk komunikasi JS ke Java
         webView.addJavascriptInterface(new WebAppInterface(), "Android"); 
         
         webView.setWebViewClient(new CustomWebViewClient());
@@ -123,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
             public void onAdLoaded() {
                 Log.d("AdMob", "Inline Ad Loaded. Requesting HTML position.");
                 
-                // PERBAIKAN KRUSIAL: Panggil JS langsung, JANGAN manipulasi URL hash.
+                // PERBAIKAN: Panggil JS langsung untuk mendapatkan posisi
                 String jsCode = "javascript:(function(){" +
                     "  var p = document.getElementById('native_ad_placeholder');" +
                     "  if(p) {" +
@@ -132,7 +139,8 @@ public class MainActivity extends AppCompatActivity {
                     "    Android.setAdPosition(y);" + // Kirim posisi Y ke Java
                     "  }" +
                     "})()";
-                webView.loadUrl(jsCode); 
+                // WebView harus berada di UI thread, jadi kita menggunakan post/run
+                webView.post(() -> webView.loadUrl(jsCode)); 
             }
 
             @Override
@@ -149,13 +157,12 @@ public class MainActivity extends AppCompatActivity {
     public class WebAppInterface {
         @JavascriptInterface
         public void setAdPosition(int yOffset) {
-            // yOffset adalah posisi vertikal placeholder di WebView
             Log.d("AdPosition", "Placeholder Y position received: " + yOffset);
             
             webView.post(() -> {
                 FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) adContainerInline.getLayoutParams();
                 
-                // Menggunakan Y-offset yang diterima langsung, ini posisi relatif terhadap WebView
+                // Menggunakan Y-offset yang diterima langsung
                 params.topMargin = yOffset; 
                 
                 adContainerInline.setLayoutParams(params);
@@ -167,9 +174,8 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // =================================================================
-    // LOGIKA ADMOB INTERSTITIAL & WEBVIEW CLIENT
+    // LOGIKA ADMOB INTERSTITIAL
     // =================================================================
-    // ... (Fungsi loadInterstitialAd dan setInterstitialAdCallback tetap sama) ...
     private void loadInterstitialAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
         InterstitialAd.load(this, "ca-app-pub-3940256099942544/1033173712", 
@@ -198,11 +204,14 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
-
+    
+    // =================================================================
+    // WEBVIEW CLIENT & BACK BUTTON
+    // =================================================================
     private class CustomWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            // Hapus logika penangkapan hash change yang menyebabkan reload dan teks #position_trigger
+            // Memastikan tidak ada logika hash change yang memicu reload konten
             if (url.startsWith("file:///android_asset/")) {
                  view.loadUrl(url);
                  return true;
@@ -211,7 +220,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
-    // ... (Fungsi onKeyDown tetap sama) ...
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
