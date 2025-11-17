@@ -16,11 +16,37 @@
         android:layout_height="wrap_content"
         android:visibility="gone">
         <com.google.android.gms.ads.AdView
-            android:id="@+id/ad_view_inline_1"
+            android:id="@+id/ad_view_inline_1" 
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:adSize="BANNER" 
+            app:adSize="BANNER"
             app:adUnitId="ca-app-pub-3940256099942544/6300978111" /> 
-            </FrameLayout>
-    
     </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/ad_container_inline_2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone">
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/ad_view_inline_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:adSize="BANNER"
+            app:adUnitId="ca-app-pub-3940256099942544/6300978111" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/ad_container_inline_3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone">
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/ad_view_inline_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:adSize="BANNER"
+            app:adUnitId="ca-app-pub-3940256099942544/6300978111" />
+    </FrameLayout>
+
+</FrameLayout>
