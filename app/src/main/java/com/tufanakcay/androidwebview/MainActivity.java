@@ -2,7 +2,6 @@ package com.tufanakcay.androidwebview;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
@@ -24,12 +23,11 @@ import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 import com.google.android.gms.ads.FullScreenContentCallback;
 
-
 public class MainActivity extends AppCompatActivity {
 
     WebView webView;
     
-    // DEKLARASI TIGA UNIT IKLAN IN-FEED
+    // Iklan In-Feed 1, 2, 3
     private AdView mAdViewInline1; 
     private FrameLayout adContainerInline1;
     private AdView mAdViewInline2; 
@@ -43,38 +41,27 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Membersihkan flag FULLSCREEN yang mungkin konflik
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN); 
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE); 
         
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
+        // PENTING: Inisialisasi komponen
         init();
         
         webView.clearCache(true); 
-        viewUrl(); 
+        
+        viewUrl("file:///android_asset/index.html"); 
 
         MobileAds.initialize(this, initializationStatus -> {
-            Log.d("AdMob", "AdMob SDK initialized. Starting ad loads.");
-            loadAllInlineAds(); // FUNGSI BARU
+            Log.d("AdMob", "AdMob SDK initialized. Interstitial load started.");
             loadInterstitialAd();
         });
     }
-
-    private void init() {
-        webView = findViewById(R.id.webView);
-        
-        // INISIALISASI TIGA UNIT IKLAN IN-FEED
-        mAdViewInline1 = findViewById(R.id.ad_view_inline_1); 
-        adContainerInline1 = findViewById(R.id.ad_container_inline_1);
-        mAdViewInline2 = findViewById(R.id.ad_view_inline_2); 
-        adContainerInline2 = findViewById(R.id.ad_container_inline_2);
-        mAdViewInline3 = findViewById(R.id.ad_view_inline_3); 
-        adContainerInline3 = findViewById(R.id.ad_container_inline_3);
-    }
-
-    private void viewUrl() {
-        String localAssetUrl = "file:///android_asset/index.html";
+    
+    private void viewUrl(String url) {
         WebSettings webSettings = webView.getSettings();
 
         webSettings.setJavaScriptEnabled(true);
@@ -86,34 +73,51 @@ public class MainActivity extends AppCompatActivity {
         webView.addJavascriptInterface(new WebAppInterface(), "Android"); 
         
         webView.setWebViewClient(new CustomWebViewClient());
-        webView.loadUrl(localAssetUrl);
+        webView.loadUrl(url);
     }
     
-    // FUNGSI BARU: MUAT SEMUA IKLAN INLINE
-    private void loadAllInlineAds() {
-        // Muat Iklan 1
-        loadInlineAd(mAdViewInline1, adContainerInline1, 1);
-        // Muat Iklan 2
-        loadInlineAd(mAdViewInline2, adContainerInline2, 2);
-        // Muat Iklan 3
-        loadInlineAd(mAdViewInline3, adContainerInline3, 3);
+    private void init() {
+        // Pastikan ID ini sama persis dengan activity_main.xml
+        webView = findViewById(R.id.webView);
+        
+        adContainerInline1 = findViewById(R.id.ad_container_inline_1);
+        mAdViewInline1 = findViewById(R.id.ad_view_inline_1);
+        
+        adContainerInline2 = findViewById(R.id.ad_container_inline_2);
+        mAdViewInline2 = findViewById(R.id.ad_view_inline_2);
+        
+        adContainerInline3 = findViewById(R.id.ad_container_inline_3);
+        mAdViewInline3 = findViewById(R.id.ad_view_inline_3);
+    }
+
+    // FUNGSI MUAT IKLAN UTAMA (Dipanggil dari JavaScript)
+    public void loadAllInlineAds() {
+        Log.d("AdMob", "Loading all inline ads requested by JS.");
+        // NULL CHECK untuk mencegah Force Close jika ada ID yang salah di XML
+        if (mAdViewInline1 != null) loadInlineAd(mAdViewInline1, adContainerInline1, 1);
+        if (mAdViewInline2 != null) loadInlineAd(mAdViewInline2, adContainerInline2, 2);
+        if (mAdViewInline3 != null) loadInlineAd(mAdViewInline3, adContainerInline3, 3);
     }
     
     private void loadInlineAd(AdView adView, FrameLayout adContainer, int adIndex) {
+        if (adView == null || adContainer == null) {
+            Log.e("AdMob", "AdView or AdContainer for index " + adIndex + " is NULL. Skipping load.");
+            return;
+        }
+
         AdRequest adRequest = new AdRequest.Builder().build();
         adView.loadAd(adRequest);
         
         adView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
-                // Setelah Iklan dimuat, panggil JS untuk menemukan posisi placeholder
-                // Kita akan mencari ID: 'native_ad_placeholder_1', 'native_ad_placeholder_2', dst.
+                // Panggil JS untuk mendapatkan posisi placeholder
                 String jsCode = "javascript:(function(){" +
                     "  var p = document.getElementById('native_ad_placeholder_" + adIndex + "');" +
-                    "  if(p) {" +
+                    "  if(p && p.offsetParent !== null) {" + 
                     "    var rect = p.getBoundingClientRect();" +
                     "    var y = rect.top + window.scrollY;" +
-                    "    Android.setAdPosition(" + adIndex + ", y);" + // Kirim Indeks dan Posisi Y ke Java
+                    "    Android.setAdPosition(" + adIndex + ", y);" + 
                     "  }" +
                     "})()";
                 webView.post(() -> webView.loadUrl(jsCode)); 
@@ -128,35 +132,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // =================================================================
-    // KOMUNIKASI JAVASCRIPT KE JAVA (SEKARANG MENERIMA INDEX)
+    // KOMUNIKASI JAVASCRIPT KE JAVA
     // =================================================================
     public class WebAppInterface {
         @JavascriptInterface
         public void setAdPosition(int adIndex, int yOffset) {
-            Log.d("AdPosition", "Ad index " + adIndex + " position received: " + yOffset);
-            
             webView.post(() -> {
                 FrameLayout targetContainer = null;
-                
-                // Pilih container yang benar berdasarkan indeks dari JS
                 if (adIndex == 1) targetContainer = adContainerInline1;
                 else if (adIndex == 2) targetContainer = adContainerInline2;
                 else if (adIndex == 3) targetContainer = adContainerInline3;
 
                 if (targetContainer != null) {
-                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) targetContainer.getLayoutParams();
-                    // Gunakan Y-offset yang diterima
-                    params.topMargin = yOffset; 
-                    targetContainer.setLayoutParams(params);
-                    targetContainer.setVisibility(View.VISIBLE);
+                    if (targetContainer.getLayoutParams() instanceof FrameLayout.LayoutParams) {
+                        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) targetContainer.getLayoutParams();
+                        params.topMargin = yOffset; 
+                        targetContainer.setLayoutParams(params);
+                        targetContainer.setVisibility(View.VISIBLE);
+                    } else {
+                         Log.e("AdMob", "LayoutParams tidak ditemukan untuk AdContainer " + adIndex);
+                    }
+                } else {
+                     Log.e("AdMob", "AdContainer " + adIndex + " is NULL in Java.");
                 }
             });
+        }
+        
+        // Dipanggil oleh JS setelah splash hilang
+        @JavascriptInterface
+        public void loadAllInlineAds() {
+            MainActivity.this.loadAllInlineAds();
         }
     }
     
     // =================================================================
-    // LOGIKA ADMOB INTERSTITIAL & BACK BUTTON (TIDAK BERUBAH)
+    // LOGIKA IKLAN INTERSTITIAL DAN NAVIGASI
     // =================================================================
+    
     private void loadInterstitialAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
         InterstitialAd.load(this, "ca-app-pub-3940256099942544/1033173712", 
@@ -166,7 +178,6 @@ public class MainActivity extends AppCompatActivity {
                     mInterstitialAd = interstitialAd;
                     setInterstitialAdCallback();
                 }
-
                 @Override
                 public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
                     mInterstitialAd = null;
@@ -180,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onAdDismissedFullScreenContent() {
                     webView.goBack();
-                    loadInterstitialAd();
+                    loadInterstitialAd(); // Load iklan berikutnya
                 }
             });
         }
@@ -210,6 +221,9 @@ public class MainActivity extends AppCompatActivity {
                     webView.goBack();
                     return true;
                 }
+            } else {
+                finish(); 
+                return true;
             }
         }
         return super.onKeyDown(keyCode, event);
