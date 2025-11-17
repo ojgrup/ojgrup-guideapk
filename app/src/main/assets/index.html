@@ -8,20 +8,88 @@
       /* ========================================= */
       /* 1. GLOBAL & RESET */
       /* ========================================= */
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f9;
-        overflow-x: hidden;
+      html, body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+          background-color: #f4f4f9;
+          overflow-x: hidden;
       }
+      /* ========================================= */
+      /* 2. OVERLAY SLIDER (SPLASH SCREEN) - FULL SCREEN */
+      /* ========================================= */
+      #splashOverlay {
+          position: fixed; /* Kunci: Membuat overlay penuh layar */
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100vh; /* 100% tinggi viewport, menjamin full screen */
+          background-color: #f4f4f9;
+          z-index: 1000; /* Pastikan berada di atas semua elemen */
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          transition: opacity 0.5s ease;
+      }
+      
+      /* ========================================= */
+      /* 3. SLIDER CAROUSEL STYLE */
+      /* ========================================= */
+      #sliderContainer {
+          width: 100%;
+          max-width: 900px;
+          padding: 20px;
+          box-sizing: border-box;
+      }
+      .slider-carousel {
+          display: flex;
+          overflow-x: scroll;
+          scroll-snap-type: x mandatory;
+          border-radius: 12px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          -webkit-overflow-scrolling: touch;
+          scroll-behavior: smooth;
+          height: 80vh; /* Tinggi slider di dalam container full screen */
+      }
+      .slider-carousel::-webkit-scrollbar { display: none; }
+      .slider-carousel { -ms-overflow-style: none; scrollbar-width: none; }
+      
+      .slider-item {
+          flex: 0 0 100%;
+          scroll-snap-align: start;
+          background-color: #ffffff;
+          border-radius: 12px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          text-align: center;
+          padding: 40px;
+          box-sizing: border-box;
+      }
+      .slider-title { font-size: 2em; color: #333; margin-bottom: 20px; }
+      .slider-subtitle { font-size: 1.1em; color: #666; margin-bottom: 30px; }
+      .slider-button {
+          padding: 15px 30px;
+          background-color: #007bff;
+          color: white;
+          text-decoration: none;
+          font-size: 1.5em;
+          font-weight: bold;
+          border-radius: 10px;
+          cursor: pointer;
+          border: none;
+          transition: background-color 0.3s ease;
+      }
+      .slider-button:active { background-color: #0056b3; }
 
       /* ========================================= */
-      /* 2. MENU KARTU */
+      /* 4. MENU KARTU (KONTEN UTAMA) */
       /* ========================================= */
       #mainContent {
-        display: block; /* Selalu tampil */
-        opacity: 1;
+        display: none; /* Kunci: Konten tersembunyi di awal */
+        opacity: 0;
+        transition: opacity 0.5s ease;
         width: 100%;
       }
 
@@ -29,7 +97,6 @@
         width: 100%;
         padding: 20px;
         box-sizing: border-box;
-        /* HILANGKAN margin-top karena iklan atas sudah ditangani di XML */
       }
 
       .card-grid {
@@ -40,11 +107,10 @@
         margin: 0 auto;
       }
 
-      /* 💡 CSS BARU: RUANG KOSONG UNTUK IKLAN "NATIVE" */
-      #native_ad_placeholder {
-        /* Tinggi untuk Iklan Medium Rectangle (300x250) + padding */
+      /* Ruang kosong untuk iklan native */
+      .ad-placeholder {
         height: 280px; 
-        background-color: #ffffff; /* Latar belakang agar menyatu */
+        background-color: #ffffff;
         border-radius: 12px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         display: flex;
@@ -56,58 +122,74 @@
       }
       
       /* ... (CSS kartu lainnya tetap sama) ... */
-      .card-link {
-        text-decoration: none;
-        color: inherit;
-        display: block;
-      }
+      .card-link { text-decoration: none; color: inherit; display: block; }
       .card {
-        background-color: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        padding: 20px 25px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        text-align: left;
-        display: flex;
-        align-items: center;
-        min-height: 80px;
-        cursor: pointer;
+        background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px 25px; transition: transform 0.3s ease, box-shadow 0.3s ease; text-align: left;
+        display: flex; align-items: center; min-height: 80px; cursor: pointer;
       }
-      .card:hover {
-        transform: scale(1.01);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-      }
-      .card-image {
-        width: 50px;
-        height: 50px;
-        object-fit: contain;
-        margin-right: 20px;
-        flex-shrink: 0;
-      }
-      .card-title {
-        font-size: 1.4em;
-        color: #333;
-        margin: 0;
-        flex-grow: 1;
-      }
+      .card:active { transform: scale(0.99); }
+      .card-image { width: 50px; height: 50px; object-fit: contain; margin-right: 20px; flex-shrink: 0; }
+      .card-title { font-size: 1.4em; color: #333; margin: 0; flex-grow: 1; }
       @media (max-width: 450px) {
-        .card {
-          flex-direction: column;
-          text-align: center;
-          align-items: center;
-          padding: 15px;
-        }
-        .card-image {
-          margin-right: 0;
-          margin-bottom: 10px;
-        }
-        .card-title {
-          font-size: 1.2em;
-        }
+        .card { flex-direction: column; text-align: center; align-items: center; padding: 15px; }
+        .card-image { margin-right: 0; margin-bottom: 10px; }
+        .card-title { font-size: 1.2em; }
       }
     </style>
+
+    <script>
+        // Fungsi ini dipanggil saat tombol MASUK diklik
+        function showMainContent() {
+            // 1. Sembunyikan Overlay Splash
+            const splash = document.getElementById('splashOverlay');
+            splash.style.opacity = '0';
+            
+            // 2. Tampilkan Konten Utama
+            const mainContent = document.getElementById('mainContent');
+            mainContent.style.display = 'block';
+            
+            // 3. Tunggu transisi opacity selesai (0.5 detik) lalu hapus splash
+            setTimeout(() => {
+                splash.style.display = 'none';
+                mainContent.style.opacity = '1';
+                
+                // 4. Panggil fungsi Java untuk memposisikan iklan native
+                if (window.Android && Android.loadAllInlineAds) {
+                   Android.loadAllInlineAds(); 
+                }
+            }, 500);
+        }
+    </script>
   </head>
   <body>
+    <div id="splashOverlay">
+        <div id="sliderContainer">
+            <div class="slider-carousel">
+                <div class="slider-item" style="background-color: #e6f7ff;">
+                    <h2 class="slider-title">Aplikasi Panduan Terbaik</h2>
+                    <p class="slider-subtitle">Geser untuk melihat fitur menarik lainnya.</p>
+                    <button class="slider-button" onclick="showMainContent();">
+                        MASUK KE KONTEN
+                    </button>
+                </div>
+                <div class="slider-item" style="background-color: #ffebe6;">
+                    <h2 class="slider-title">Akses Penuh dan Gratis</h2>
+                    <p class="slider-subtitle">Temukan semua langkah dan strategi yang Anda butuhkan.</p>
+                    <button class="slider-button" onclick="showMainContent();">
+                        MULAI SEKARANG
+                    </button>
+                </div>
+                <div class="slider-item" style="background-color: #f0f9e6;">
+                    <h2 class="slider-title">Informasi Selalu Diperbarui</h2>
+                    <p class="slider-subtitle">Kami selalu menghadirkan konten terbaru dan relevan.</p>
+                    <button class="slider-button" onclick="showMainContent();">
+                        LIHAT SEMUA
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="mainContent">
       <div class="card-container">
         <div class="card-grid">
@@ -125,9 +207,9 @@
             </div>
           </a>
           
-          <div id="native_ad_placeholder">
-            [Iklan dari AdMob akan muncul di sini] 
-          </div> 
+          <div id="native_ad_placeholder_1" class="ad-placeholder">
+            [Iklan 1 dari AdMob akan muncul di sini] 
+          </div>
           
           <a href="detail_langkah3.html" class="card-link">
             <div class="card">
@@ -142,18 +224,29 @@
               <h2 class="card-title">4. Pengujian dan Debugging Intensif</h2>
             </div>
           </a>
+          
+          <div id="native_ad_placeholder_2" class="ad-placeholder">
+            [Iklan 2 dari AdMob akan muncul di sini] 
+          </div>
+
           <a href="detail_langkah5.html" class="card-link">
             <div class="card">
               <img src="https://via.placeholder.com/50/6f42c1/ffffff?text=5" alt="Langkah 5" class="card-image">
               <h2 class="card-title">5. Penyebaran ke Lingkungan Produksi</h2>
             </div>
           </a>
+          
           <a href="detail_langkah6.html" class="card-link">
             <div class="card">
               <img src="https://via.placeholder.com/50/17a2b8/ffffff?text=6" alt="Langkah 6" class="card-image">
               <h2 class="card-title">6. Pemantauan dan Peningkatan Berkelanjutan</h2>
             </div>
           </a>
+
+          <div id="native_ad_placeholder_3" class="ad-placeholder">
+            [Iklan 3 dari AdMob akan muncul di sini] 
+          </div>
+          
         </div>
       </div>
     </div>
