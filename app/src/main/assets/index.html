@@ -16,16 +16,16 @@
           overflow-x: hidden;
       }
       /* ========================================= */
-      /* 2. OVERLAY SLIDER (SPLASH SCREEN) - FULL SCREEN */
+      /* 2. OVERLAY SPLASH SCREEN - FULL SCREEN */
       /* ========================================= */
       #splashOverlay {
-          position: fixed; /* Kunci: Membuat overlay penuh layar */
+          position: fixed; 
           top: 0;
           left: 0;
           width: 100%;
-          height: 100vh; /* 100% tinggi viewport, menjamin full screen */
-          background-color: #f4f4f9;
-          z-index: 1000; /* Pastikan berada di atas semua elemen */
+          height: 100vh; 
+          background-color: #e6f7ff; /* Latar belakang biru terang */
+          z-index: 1000; 
           display: flex;
           justify-content: center;
           align-items: center;
@@ -33,32 +33,21 @@
       }
       
       /* ========================================= */
-      /* 3. SLIDER CAROUSEL STYLE */
+      /* 3. SINGLE SLIDE STYLE */
       /* ========================================= */
       #sliderContainer {
-          width: 100%;
+          width: 100%; 
           max-width: 900px;
-          padding: 20px;
+          padding: 0;
           box-sizing: border-box;
       }
-      .slider-carousel {
-          display: flex;
-          overflow-x: scroll;
-          scroll-snap-type: x mandatory;
-          border-radius: 12px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          -webkit-overflow-scrolling: touch;
-          scroll-behavior: smooth;
-          height: 80vh; 
-      }
-      .slider-carousel::-webkit-scrollbar { display: none; }
-      .slider-carousel { -ms-overflow-style: none; scrollbar-width: none; }
-      
+
+      /* Kunci: Menjadikan slider-item mengambil seluruh ruang di dalam container */
       .slider-item {
-          flex: 0 0 100%;
-          scroll-snap-align: start;
-          background-color: #ffffff;
-          border-radius: 12px;
+          width: 100%;
+          height: 100vh; /* Mengambil tinggi penuh viewport */
+          background-color: #e6f7ff; 
+          border-radius: 0;
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -67,6 +56,7 @@
           padding: 40px;
           box-sizing: border-box;
       }
+      
       .slider-title { font-size: 2em; color: #333; margin-bottom: 20px; }
       .slider-subtitle { font-size: 1.1em; color: #666; margin-bottom: 30px; }
       .slider-button {
@@ -87,17 +77,15 @@
       /* 4. MENU KARTU (KONTEN UTAMA) */
       /* ========================================= */
       #mainContent {
-        display: none; /* Kunci: Konten tersembunyi di awal */
+        display: none; 
         opacity: 0;
         transition: opacity 0.5s ease;
         width: 100%;
-        /* Tambahkan padding-top jika Anda memiliki Banner Iklan FIX di Java */
-        /* padding-top: 80px; */ 
       }
 
       .card-container {
         width: 100%;
-        padding: 20px;
+        padding: 20px; 
         box-sizing: border-box;
       }
 
@@ -123,7 +111,6 @@
         font-size: 0.8em;
       }
       
-      /* ... (CSS kartu lainnya tetap sama) ... */
       .card-link { text-decoration: none; color: inherit; display: block; }
       .card {
         background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -145,16 +132,15 @@
             const splash = document.getElementById('splashOverlay');
             const mainContent = document.getElementById('mainContent');
             
-            // 1. Mulai transisi
+            // Transisi fade out
             splash.style.opacity = '0';
             mainContent.style.display = 'block';
             
-            // 2. Selesaikan transisi setelah 0.5 detik
+            // Setelah transisi, sembunyikan splash dan panggil AdMob
             setTimeout(() => {
                 splash.style.display = 'none';
                 mainContent.style.opacity = '1';
                 
-                // 3. Panggil Java untuk memposisikan iklan
                 if (window.Android && Android.loadAllInlineAds) {
                    Android.loadAllInlineAds(); 
                 }
@@ -165,28 +151,12 @@
   <body>
     <div id="splashOverlay">
         <div id="sliderContainer">
-            <div class="slider-carousel">
-                <div class="slider-item" style="background-color: #e6f7ff;">
-                    <h2 class="slider-title">Aplikasi Panduan Terbaik</h2>
-                    <p class="slider-subtitle">Geser untuk melihat fitur menarik lainnya.</p>
-                    <button class="slider-button" onclick="showMainContent();">
-                        MASUK KE KONTEN
-                    </button>
-                </div>
-                <div class="slider-item" style="background-color: #ffebe6;">
-                    <h2 class="slider-title">Akses Penuh dan Gratis</h2>
-                    <p class="slider-subtitle">Temukan semua langkah dan strategi yang Anda butuhkan.</p>
-                    <button class="slider-button" onclick="showMainContent();">
-                        MULAI SEKARANG
-                    </button>
-                </div>
-                <div class="slider-item" style="background-color: #f0f9e6;">
-                    <h2 class="slider-title">Informasi Selalu Diperbarui</h2>
-                    <p class="slider-subtitle">Kami selalu menghadirkan konten terbaru dan relevan.</p>
-                    <button class="slider-button" onclick="showMainContent();">
-                        LIHAT SEMUA
-                    </button>
-                </div>
+            <div class="slider-item">
+                <h2 class="slider-title">Aplikasi Panduan Terbaik</h2>
+                <p class="slider-subtitle">Temukan semua langkah dan strategi yang Anda butuhkan.</p>
+                <button class="slider-button" onclick="showMainContent();">
+                    MASUK KE KONTEN
+                </button>
             </div>
         </div>
     </div>
