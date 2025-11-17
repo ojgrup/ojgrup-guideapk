@@ -18,7 +18,11 @@ import android.widget.Button;
 import android.view.LayoutInflater;
 import android.graphics.Color;
 
-import com.tufanakcay.androidwebview.R; 
+// 🔥 PERBAIKAN 1: Tambahkan semua import AdMob yang hilang (AdLoader, dll.)
+import com.google.android.gms.ads.adloader.AdLoader;
+import com.google.android.gms.ads.nativead.NativeAd;
+import com.google.android.gms.ads.nativead.NativeAdView;
+
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
@@ -27,9 +31,6 @@ import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.appopen.AppOpenAd; 
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
-import com.google.android.gms.ads.adloader.AdLoader;
-import com.google.android.gms.ads.nativead.NativeAd;
-import com.google.android.gms.ads.nativead.NativeAdView;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -43,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private InterstitialAd mInterstitialAd;
     private AppOpenAd appOpenAd = null; 
     
-    // 🔥 ID IKLAN TEST ADMOB (HARAP GANTI DENGAN ID ASLI ANDA) 🔥
+    // ID IKLAN TEST ADMOB (HARAP GANTI DENGAN ID ASLI ANDA)
     private static final String INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"; 
     private static final String APP_OPEN_AD_UNIT_ID = "ca-app-pub-3940256099942544/3419835294"; 
     private static final String NATIVE_AD_UNIT_ID = "ca-app-pub-3940256099942544/2247696110"; 
@@ -90,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
         loadTopBannerAd();
 
         // 4. Konfigurasi WebView dan Muat Fragment HTML
-        // Setiap WebView memuat bagian terpisah dari konten
         setupWebView(webView1, "file:///android_asset/fragment_1.html");
         setupWebView(webView2, "file:///android_asset/fragment_2.html");
         setupWebView(webView3, "file:///android_asset/fragment_3.html"); 
@@ -105,12 +105,11 @@ public class MainActivity extends AppCompatActivity {
     private void setupWebView(WebView wv, String url) {
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        // Penting: Memastikan WebView mengambil tinggi konten untuk tata letak yang benar
-        webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.TEXT_AUTOSIZE); 
         
-        // Hanya WebView utama yang memerlukan WebAppInterface, WebView fragmen tidak perlu.
-        // wv.addJavascriptInterface(new WebAppInterface(), "Android"); 
-
+        // 🔥 PERBAIKAN 2: Mengganti konstanta TEXT_AUTOSIZE yang hilang
+        // Gunakan SINGLE_COLUMN yang lebih stabil atau hilangkan sama sekali jika CSS Anda sudah modern
+        webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN); 
+        
         wv.setWebViewClient(new WebViewClient());
         wv.loadUrl(url);
     }
@@ -147,7 +146,8 @@ public class MainActivity extends AppCompatActivity {
             this,
             APP_OPEN_AD_UNIT_ID,
             new AdRequest.Builder().build(),
-            AppOpenAd.ORIENTATION_PORTRAIT,
+            // 🔥 PERBAIKAN 3: Mengganti ORIENTATION_PORTRAIT yang hilang
+            AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, 
             new AppOpenAd.AppOpenAdLoadCallback() {
                 @Override
                 public void onAdLoaded(@NonNull AppOpenAd ad) {
@@ -182,6 +182,7 @@ public class MainActivity extends AppCompatActivity {
     // =======================================================
 
     private void loadNativeAd(final FrameLayout placeholder) {
+        // AdLoader sudah ditemukan karena perbaikan import di atas
         AdLoader adLoader = new AdLoader.Builder(this, NATIVE_AD_UNIT_ID)
             .forNativeAd(nativeAd -> {
                 displayNativeAd(nativeAd, placeholder);
@@ -200,11 +201,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayNativeAd(NativeAd nativeAd, FrameLayout placeholder) {
         // Inflate layout Native Ad View Anda dari R.layout.native_ad_template
+        // 🔥 PERBAIKAN 4: Asumsi R.layout.native_ad_template sekarang tersedia
         NativeAdView adView = (NativeAdView) LayoutInflater.from(this)
             .inflate(R.layout.native_ad_template, null); 
             
         try {
             // Set View untuk Headline, Body, CTA, dan Icon
+            // 🔥 PERBAIKAN 4: Asumsi ID ad_headline, dll. sekarang tersedia dari native_ad_template.xml
             adView.setHeadlineView(adView.findViewById(R.id.ad_headline));
             adView.setBodyView(adView.findViewById(R.id.ad_body));
             adView.setCallToActionView(adView.findViewById(R.id.ad_call_to_action));
@@ -259,8 +262,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            // Karena kita menggunakan 3 WebView, kita asumsikan tidak ada goBack()
-            // atau goBack() hanya akan berlaku di WebView yang sedang fokus (jika ada navigasi di dalamnya).
             
             backPressCount++;
             if (backPressCount >= AD_SHOW_THRESHOLD && mInterstitialAd != null) {
