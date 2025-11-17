@@ -29,13 +29,13 @@ public class MainActivity extends AppCompatActivity {
 
     WebView webView;
     
-    // Iklan 1: Banner Atas
-    private AdView mAdView;
-    private FrameLayout adContainer;
-    
-    // Iklan 2: In-Feed / Native
-    private AdView mAdViewInline; 
-    private FrameLayout adContainerInline;
+    // DEKLARASI TIGA UNIT IKLAN IN-FEED
+    private AdView mAdViewInline1; 
+    private FrameLayout adContainerInline1;
+    private AdView mAdViewInline2; 
+    private FrameLayout adContainerInline2;
+    private AdView mAdViewInline3; 
+    private FrameLayout adContainerInline3;
 
     private InterstitialAd mInterstitialAd;
     private int backPressCount = 0;
@@ -56,23 +56,21 @@ public class MainActivity extends AppCompatActivity {
 
         MobileAds.initialize(this, initializationStatus -> {
             Log.d("AdMob", "AdMob SDK initialized. Starting ad loads.");
-            loadBannerAdTop();      
-            loadBannerAdInline();   
+            loadAllInlineAds(); // FUNGSI BARU
             loadInterstitialAd();
         });
     }
 
     private void init() {
-        // PASTIKAN ID DI SINI SAMA DENGAN XML
         webView = findViewById(R.id.webView);
         
-        // Iklan 1: Banner Atas
-        mAdView = findViewById(R.id.ad_view);
-        adContainer = findViewById(R.id.ad_container);
-        
-        // Iklan 2: In-Feed / Native
-        mAdViewInline = findViewById(R.id.ad_view_inline); 
-        adContainerInline = findViewById(R.id.ad_container_inline);
+        // INISIALISASI TIGA UNIT IKLAN IN-FEED
+        mAdViewInline1 = findViewById(R.id.ad_view_inline_1); 
+        adContainerInline1 = findViewById(R.id.ad_container_inline_1);
+        mAdViewInline2 = findViewById(R.id.ad_view_inline_2); 
+        adContainerInline2 = findViewById(R.id.ad_container_inline_2);
+        mAdViewInline3 = findViewById(R.id.ad_view_inline_3); 
+        adContainerInline3 = findViewById(R.id.ad_container_inline_3);
     }
 
     private void viewUrl() {
@@ -91,37 +89,31 @@ public class MainActivity extends AppCompatActivity {
         webView.loadUrl(localAssetUrl);
     }
     
-    private void loadBannerAdTop() {
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
-        
-        mAdView.setAdListener(new AdListener() {
-            @Override
-            public void onAdLoaded() {
-                adContainer.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                adContainer.setVisibility(View.GONE);
-            }
-        });
+    // FUNGSI BARU: MUAT SEMUA IKLAN INLINE
+    private void loadAllInlineAds() {
+        // Muat Iklan 1
+        loadInlineAd(mAdViewInline1, adContainerInline1, 1);
+        // Muat Iklan 2
+        loadInlineAd(mAdViewInline2, adContainerInline2, 2);
+        // Muat Iklan 3
+        loadInlineAd(mAdViewInline3, adContainerInline3, 3);
     }
-
-    private void loadBannerAdInline() {
+    
+    private void loadInlineAd(AdView adView, FrameLayout adContainer, int adIndex) {
         AdRequest adRequest = new AdRequest.Builder().build();
-        mAdViewInline.loadAd(adRequest);
+        adView.loadAd(adRequest);
         
-        mAdViewInline.setAdListener(new AdListener() {
+        adView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
-                // Panggil JS langsung untuk mendapatkan posisi
+                // Setelah Iklan dimuat, panggil JS untuk menemukan posisi placeholder
+                // Kita akan mencari ID: 'native_ad_placeholder_1', 'native_ad_placeholder_2', dst.
                 String jsCode = "javascript:(function(){" +
-                    "  var p = document.getElementById('native_ad_placeholder');" +
+                    "  var p = document.getElementById('native_ad_placeholder_" + adIndex + "');" +
                     "  if(p) {" +
                     "    var rect = p.getBoundingClientRect();" +
                     "    var y = rect.top + window.scrollY;" +
-                    "    Android.setAdPosition(y);" + 
+                    "    Android.setAdPosition(" + adIndex + ", y);" + // Kirim Indeks dan Posisi Y ke Java
                     "  }" +
                     "})()";
                 webView.post(() -> webView.loadUrl(jsCode)); 
@@ -129,23 +121,42 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                adContainerInline.setVisibility(View.GONE);
+                adContainer.setVisibility(View.GONE);
+                Log.e("AdMob", "Inline Ad " + adIndex + " failed to load: " + loadAdError.getMessage());
             }
         });
     }
-    
+
+    // =================================================================
+    // KOMUNIKASI JAVASCRIPT KE JAVA (SEKARANG MENERIMA INDEX)
+    // =================================================================
     public class WebAppInterface {
         @JavascriptInterface
-        public void setAdPosition(int yOffset) {
+        public void setAdPosition(int adIndex, int yOffset) {
+            Log.d("AdPosition", "Ad index " + adIndex + " position received: " + yOffset);
+            
             webView.post(() -> {
-                FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) adContainerInline.getLayoutParams();
-                params.topMargin = yOffset; 
-                adContainerInline.setLayoutParams(params);
-                adContainerInline.setVisibility(View.VISIBLE);
+                FrameLayout targetContainer = null;
+                
+                // Pilih container yang benar berdasarkan indeks dari JS
+                if (adIndex == 1) targetContainer = adContainerInline1;
+                else if (adIndex == 2) targetContainer = adContainerInline2;
+                else if (adIndex == 3) targetContainer = adContainerInline3;
+
+                if (targetContainer != null) {
+                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) targetContainer.getLayoutParams();
+                    // Gunakan Y-offset yang diterima
+                    params.topMargin = yOffset; 
+                    targetContainer.setLayoutParams(params);
+                    targetContainer.setVisibility(View.VISIBLE);
+                }
             });
         }
     }
     
+    // =================================================================
+    // LOGIKA ADMOB INTERSTITIAL & BACK BUTTON (TIDAK BERUBAH)
+    // =================================================================
     private void loadInterstitialAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
         InterstitialAd.load(this, "ca-app-pub-3940256099942544/1033173712", 
