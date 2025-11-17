@@ -24,7 +24,7 @@
           left: 0;
           width: 100%;
           height: 100vh; 
-          background-color: #e6f7ff; /* Latar belakang biru terang */
+          background-color: #e6f7ff; 
           z-index: 1000; 
           display: flex;
           justify-content: center;
@@ -42,10 +42,9 @@
           box-sizing: border-box;
       }
 
-      /* Kunci: Menjadikan slider-item mengambil seluruh ruang di dalam container */
       .slider-item {
           width: 100%;
-          height: 100vh; /* Mengambil tinggi penuh viewport */
+          height: 100vh; 
           background-color: #e6f7ff; 
           border-radius: 0;
           display: flex;
@@ -97,18 +96,13 @@
         margin: 0 auto;
       }
 
-      /* Ruang kosong untuk iklan native */
+      /* KOREKSI: Ruang kosong untuk iklan native (tanpa tampilan visual) */
       .ad-placeholder {
-        height: 280px; 
-        background-color: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        color: #666;
-        font-size: 0.8em;
+        height: 0px; 
+        background-color: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        display: block; 
       }
       
       .card-link { text-decoration: none; color: inherit; display: block; }
@@ -132,11 +126,9 @@
             const splash = document.getElementById('splashOverlay');
             const mainContent = document.getElementById('mainContent');
             
-            // Transisi fade out
             splash.style.opacity = '0';
             mainContent.style.display = 'block';
             
-            // Setelah transisi, sembunyikan splash dan panggil AdMob
             setTimeout(() => {
                 splash.style.display = 'none';
                 mainContent.style.opacity = '1';
@@ -178,8 +170,7 @@
           </a>
           
           <div id="native_ad_placeholder_1" class="ad-placeholder">
-            [Iklan dari AdMob akan muncul di sini] 
-          </div>
+            </div>
           
           <a href="detail_langkah3.html" class="card-link">
             <div class="card">
@@ -196,8 +187,7 @@
           </a>
           
           <div id="native_ad_placeholder_2" class="ad-placeholder">
-            [Iklan dari AdMob akan muncul di sini] 
-          </div>
+            </div>
 
           <a href="detail_langkah5.html" class="card-link">
             <div class="card">
@@ -214,8 +204,7 @@
           </a>
 
           <div id="native_ad_placeholder_3" class="ad-placeholder">
-            [Iklan dari AdMob akan muncul di sini] 
-          </div>
+            </div>
           
         </div>
       </div>
