@@ -1,12 +1,9 @@
 // app/build.gradle (Module: app)
 
-// 1. BLOK PLUGIN HARUS DI AWAL FILE
 plugins {
     id 'com.android.application'
 }
 
-// 2. KODE KRITIS: MEMBACA FILE PROPERTI DI ROOT
-// Pastikan Anda memiliki import java.io.FileInputStream
 def releasePropsFile = rootProject.file('release.properties')
 def releaseProps = new Properties()
 if (releasePropsFile.exists()) {
@@ -18,9 +15,7 @@ if (releasePropsFile.exists()) {
 } else {
     println "WARNING: release.properties file does not exist. Using default/empty signing configs."
 }
-// -----------------------------------------------------------
 
-// 3. BLOK ANDROID HARUS MENGIKUTI DAN MENGANDUNG SEMUA KONFIGURASI SDK/VERSION
 android {
     compileSdk 33
     namespace 'com.tufanakcay.androidwebview' 
@@ -46,7 +41,6 @@ android {
 
     buildTypes {
         release {
-            // PENTING: Menonaktifkan minifikasi untuk menghindari error ProGuard
             minifyEnabled false 
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             
@@ -59,20 +53,18 @@ android {
     }
 }
 
-// 4. BLOK DEPENDENSI DI AKHIR
 dependencies {
-    // 🔥 KOREKSI KRITIS: Menambahkan core-ktx untuk menyelesaikan error WindowInsetsCompat
+    // KOREKSI: Menambahkan core-ktx 
     implementation 'androidx.core:core-ktx:1.10.1' 
     
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
-    // DEPENDENSI WAJIB ADMOB
+    // 🔥 DEPENDENSI ADMOB UTAMA (INI MENCANGKUP NATIVE ADS)
     implementation 'com.google.android.gms:play-services-ads:23.0.0'
-    // Wajib untuk Iklan Native (AdLoader, NativeAdView)
-    implementation 'com.google.android.gms:play-services-ads-native:23.0.0'
-    
+    // ❌ DEPENDENSI play-services-ads-native DIHAPUS
+
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
