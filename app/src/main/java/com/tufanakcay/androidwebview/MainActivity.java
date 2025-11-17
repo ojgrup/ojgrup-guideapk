@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
         webView = findViewById(R.id.webView);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        // Panggilan WebAppInterface
         webView.addJavascriptInterface(new WebAppInterface(), "Android"); 
         
         // 2. Muat URL AWAL (Splash Screen)
@@ -72,17 +71,18 @@ public class MainActivity extends AppCompatActivity {
         adViews[1] = findViewById(R.id.ad_view_inline_2);
         adViews[2] = findViewById(R.id.ad_view_inline_3);
         
-        // 5. BLOK INSETS DENGAN FQCN: Mengatasi masalah 'incompatible types'
+        // 5. BLOK INSETS DENGAN FQCN: Mengatasi masalah 'incompatible types' dan bottom navigation
         final FrameLayout mainLayout = findViewById(R.id.main_layout);
         if (mainLayout != null) {
             // Menggunakan FQCN untuk ViewCompat
             androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
                 
-                // Menggunakan FQCN untuk Insets dan WindowInsetsCompat.Type
+                // Mendapatkan tinggi Status Bar (Top Inset)
                 androidx.core.graphics.Insets systemWindowInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars()); 
                 int topInset = systemWindowInsets.top;
                 
                 // Terapkan padding atas pada WebView sama dengan tinggi Status Bar
+                // Kita akan mengatur padding pada WebView, bukan pada mainLayout
                 webView.setPadding(
                     webView.getPaddingLeft(), 
                     topInset, 
@@ -90,15 +90,20 @@ public class MainActivity extends AppCompatActivity {
                     webView.getPaddingBottom()
                 );
                 
-                return insets;
+                // 🔥 Meminta insets untuk diterapkan kembali pada WebView (mungkin membantu timing)
+                webView.requestApplyInsets();
+
+                return insets; // Mengembalikan insets agar tidak dikonsumsi oleh FrameLayout
             });
         }
+        
+        // 🔥 Pastikan WebView juga meminta insets saat pertama kali dibuat
+        webView.post(webView::requestApplyInsets);
     }
     
     // =======================================================
     // JAVA INTERFACE & NAVIGATION LOGIC
     // =======================================================
-    // WebAppInterface dideklarasikan di dalam MainActivity:
     public class WebAppInterface {
         
         @JavascriptInterface
@@ -145,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
         adView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
+                // Setelah iklan dimuat, kita bisa memposisikannya
                 String jsCode = "javascript:(function(){" +
                     "  var p = document.getElementById('native_ad_placeholder_" + adIndex + "');" +
                     "  if(p && p.offsetParent !== null) {" + 
@@ -170,7 +176,6 @@ public class MainActivity extends AppCompatActivity {
     // IKLAN INTERSTITIAL & BACK BUTTON LOGIC
     // =======================================================
     
-    // loadInterstitialAd() dideklarasikan di dalam MainActivity:
     private void loadInterstitialAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
         InterstitialAd.load(this, INTERSTITIAL_AD_UNIT_ID, adRequest,
