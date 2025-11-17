@@ -30,11 +30,13 @@ public class MainActivity extends AppCompatActivity {
     private InterstitialAd mInterstitialAd;
     private int backPressCount = 0;
     private static final int AD_SHOW_THRESHOLD = 2; 
-    // GANTI DENGAN ID INTERSTITIAL ASLI ANDA
-    private static final String INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"; 
+    private static final String INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"; // TEST ID
 
     private FrameLayout[] adContainers = new FrameLayout[3];
     private AdView[] adViews = new AdView[3];
+    
+    // 🔥 VARIABEL BARU: Menyimpan tinggi Status Bar untuk digunakan dalam penempatan iklan
+    private int statusBarHeight = 0; 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
             loadInterstitialAd(); 
         });
 
-        // 4. Inisialisasi Ad Native Containers
+        // 4. Inisialisasi Ad Inline Containers
         adContainers[0] = findViewById(R.id.ad_container_inline_1);
         adContainers[1] = findViewById(R.id.ad_container_inline_2);
         adContainers[2] = findViewById(R.id.ad_container_inline_3);
@@ -72,33 +74,31 @@ public class MainActivity extends AppCompatActivity {
         adViews[1] = findViewById(R.id.ad_view_inline_2);
         adViews[2] = findViewById(R.id.ad_view_inline_3);
         
-        // 5. BLOK INSETS: Mengatasi masalah konten WebView tertutup Status Bar
+        // 5. 🔥 BLOK INSETS PERBAIKAN: Mengatasi masalah Status Bar dan menyimpan tingginya
         final FrameLayout mainLayout = findViewById(R.id.main_layout);
         if (mainLayout != null) {
-            // Menggunakan FQCN untuk ViewCompat
+            // Memberi tahu FrameLayout untuk mengelola insets, yang seharusnya sudah ada di XML
+            mainLayout.setFitsSystemWindows(true); 
+            
             androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
                 
                 // Mendapatkan tinggi Status Bar (Top Inset)
                 androidx.core.graphics.Insets systemWindowInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars()); 
-                int topInset = systemWindowInsets.top;
+                statusBarHeight = systemWindowInsets.top; // 🔥 SIMPAN TINGGI STATUS BAR
                 
-                // Terapkan padding atas pada WebView sama dengan tinggi Status Bar
-                webView.setPadding(
-                    webView.getPaddingLeft(), 
-                    topInset, 
-                    webView.getPaddingRight(), 
-                    webView.getPaddingBottom()
-                );
+                // Terapkan padding atas pada WebView
+                if (webView.getPaddingTop() != statusBarHeight) {
+                    webView.setPadding(
+                        webView.getPaddingLeft(), 
+                        statusBarHeight, 
+                        webView.getPaddingRight(), 
+                        webView.getPaddingBottom()
+                    );
+                }
                 
-                // Meminta insets untuk diterapkan kembali pada WebView (untuk timing)
-                webView.requestApplyInsets();
-
-                return insets; 
+                return insets; // Mengembalikan insets agar tidak dikonsumsi
             });
         }
-        
-        // Pastikan WebView juga meminta insets saat pertama kali dibuat
-        webView.post(webView::requestApplyInsets);
     }
     
     // =======================================================
@@ -129,7 +129,10 @@ public class MainActivity extends AppCompatActivity {
                     if (targetContainer != null) {
                         if (targetContainer.getLayoutParams() instanceof FrameLayout.LayoutParams) {
                             FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) targetContainer.getLayoutParams();
-                            params.topMargin = yOffset;
+                            
+                            // 🔥 PERBAIKAN: Tambahkan statusBarHeight untuk offset posisi iklan yang akurat
+                            params.topMargin = yOffset + statusBarHeight; 
+                            
                             targetContainer.setLayoutParams(params);
                             targetContainer.setVisibility(View.VISIBLE);
                         }
@@ -138,6 +141,8 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
+    
+    // ... loadInlineAd() dan semua logika Iklan Interstitial & Back Button sama persis seperti sebelumnya ...
 
     private void loadInlineAd(AdView adView, FrameLayout adContainer, int adIndex) {
         if (adView == null || adContainer == null) {
@@ -155,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
                     "  var p = document.getElementById('native_ad_placeholder_" + adIndex + "');" +
                     "  if(p && p.offsetParent !== null) {" + 
                     "    var rect = p.getBoundingClientRect();" +
-                    // Menggunakan rect.top + window.scrollY untuk mendapatkan posisi Y absolut
                     "    var y = rect.top + window.scrollY;" +
                     "    Android.setAdPosition(" + adIndex + ", Math.round(y));" + 
                     "  }" +
@@ -172,10 +176,6 @@ public class MainActivity extends AppCompatActivity {
 
         adView.loadAd(adRequest);
     }
-    
-    // =======================================================
-    // LOGIKA IKLAN INTERSTITIAL & BACK BUTTON 
-    // =======================================================
     
     private void loadInterstitialAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
