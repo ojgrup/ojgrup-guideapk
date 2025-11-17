@@ -49,7 +49,7 @@
           box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
           -webkit-overflow-scrolling: touch;
           scroll-behavior: smooth;
-          height: 80vh; /* Tinggi slider di dalam container full screen */
+          height: 80vh; 
       }
       .slider-carousel::-webkit-scrollbar { display: none; }
       .slider-carousel { -ms-overflow-style: none; scrollbar-width: none; }
@@ -91,6 +91,8 @@
         opacity: 0;
         transition: opacity 0.5s ease;
         width: 100%;
+        /* Tambahkan padding-top jika Anda memiliki Banner Iklan FIX di Java */
+        /* padding-top: 80px; */ 
       }
 
       .card-container {
@@ -139,22 +141,20 @@
     </style>
 
     <script>
-        // Fungsi ini dipanggil saat tombol MASUK diklik
         function showMainContent() {
-            // 1. Sembunyikan Overlay Splash
             const splash = document.getElementById('splashOverlay');
-            splash.style.opacity = '0';
-            
-            // 2. Tampilkan Konten Utama
             const mainContent = document.getElementById('mainContent');
+            
+            // 1. Mulai transisi
+            splash.style.opacity = '0';
             mainContent.style.display = 'block';
             
-            // 3. Tunggu transisi opacity selesai (0.5 detik) lalu hapus splash
+            // 2. Selesaikan transisi setelah 0.5 detik
             setTimeout(() => {
                 splash.style.display = 'none';
                 mainContent.style.opacity = '1';
                 
-                // 4. Panggil fungsi Java untuk memposisikan iklan native
+                // 3. Panggil Java untuk memposisikan iklan
                 if (window.Android && Android.loadAllInlineAds) {
                    Android.loadAllInlineAds(); 
                 }
@@ -208,7 +208,7 @@
           </a>
           
           <div id="native_ad_placeholder_1" class="ad-placeholder">
-            [Iklan 1 dari AdMob akan muncul di sini] 
+            [Iklan dari AdMob akan muncul di sini] 
           </div>
           
           <a href="detail_langkah3.html" class="card-link">
@@ -226,7 +226,7 @@
           </a>
           
           <div id="native_ad_placeholder_2" class="ad-placeholder">
-            [Iklan 2 dari AdMob akan muncul di sini] 
+            [Iklan dari AdMob akan muncul di sini] 
           </div>
 
           <a href="detail_langkah5.html" class="card-link">
@@ -244,7 +244,7 @@
           </a>
 
           <div id="native_ad_placeholder_3" class="ad-placeholder">
-            [Iklan 3 dari AdMob akan muncul di sini] 
+            [Iklan dari AdMob akan muncul di sini] 
           </div>
           
         </div>
