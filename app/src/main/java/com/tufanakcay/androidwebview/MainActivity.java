@@ -20,6 +20,7 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
@@ -28,10 +29,9 @@ public class MainActivity extends AppCompatActivity {
     private WebView webView;
     private InterstitialAd mInterstitialAd;
     private int backPressCount = 0;
-    private static final int AD_SHOW_THRESHOLD = 2; // Tampilkan Iklan setelah 2 kali Back
+    private static final int AD_SHOW_THRESHOLD = 2; 
     private static final String INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"; // TEST ID
 
-    // Array untuk menyimpan referensi FrameLayout dan AdView
     private FrameLayout[] adContainers = new FrameLayout[3];
     private AdView[] adViews = new AdView[3];
 
@@ -52,14 +52,15 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setJavaScriptEnabled(true);
         webView.addJavascriptInterface(new WebAppInterface(), "Android");
         
-        // 2. Muat URL Awal
+        // 2. Muat URL AWAL (Splash Screen)
         webView.setWebViewClient(new WebViewClient());
-        webView.loadUrl("file:///android_asset/index.html");
+        // MEMUAT SPLASH.HTML SAAT START
+        webView.loadUrl("file:///android_asset/splash.html"); 
 
         // 3. Inisialisasi AdMob
         MobileAds.initialize(this, initializationStatus -> {
             Log.d("AdMob", "AdMob initialized successfully.");
-            loadInterstitialAd(); // Muat Iklan Interstitial setelah inisialisasi
+            loadInterstitialAd(); 
         });
 
         // 4. Inisialisasi Ad Native Containers
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         adViews[1] = findViewById(R.id.ad_view_inline_2);
         adViews[2] = findViewById(R.id.ad_view_inline_3);
         
-        // 5. KOREKSI: Penyesuaian Insets untuk Memposisikan Konten
+        // 5. KOREKSI: Penyesuaian Insets untuk Memposisikan Konten di bawah Status Bar
         final FrameLayout mainLayout = findViewById(R.id.main_layout);
         if (mainLayout != null) {
             ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
@@ -80,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
                 int topInset = systemInsets.top;
                 
                 // Terapkan padding atas pada WebView sama dengan tinggi Status Bar
-                // Ini akan mendorong konten HTML ke bawah
                 webView.setPadding(
                     webView.getPaddingLeft(), 
                     topInset, 
@@ -94,14 +94,25 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // =======================================================
-    // IKLAN NATIVE (IN-FEED) LOGIC
+    // JAVA INTERFACE & NAVIGATION LOGIC
     // =======================================================
-
-    // Dipanggil dari JavaScript di index.html
     public class WebAppInterface {
+        
+        // Dipanggil dari splash.html
+        @JavascriptInterface
+        public void loadMainContent() {
+            webView.post(() -> {
+                // Memuat index.html (Daftar Kartu Konten)
+                webView.loadUrl("file:///android_asset/index.html");
+                
+                // Iklan dimuat di sini setelah index.html dimuat
+                loadAllInlineAds();
+            });
+        }
+        
+        // Dipanggil setelah index.html dimuat
         @JavascriptInterface
         public void loadAllInlineAds() {
-            // Muat ketiga iklan secara berurutan
             for (int i = 0; i < 3; i++) {
                 loadInlineAd(adViews[i], adContainers[i], i + 1);
             }
@@ -115,10 +126,6 @@ public class MainActivity extends AppCompatActivity {
                     if (targetContainer != null) {
                         if (targetContainer.getLayoutParams() instanceof FrameLayout.LayoutParams) {
                             FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) targetContainer.getLayoutParams();
-                            
-                            // yOffset dari JS adalah dalam satuan piksel (px), 
-                            // harus dikonversi ke dp atau digunakan langsung jika layout tidak di-scale.
-                            // Di WebView, yOffset adalah posisi relatif terhadap WebView.
                             params.topMargin = yOffset;
                             targetContainer.setLayoutParams(params);
                             targetContainer.setVisibility(View.VISIBLE);
@@ -137,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
 
         AdRequest adRequest = new AdRequest.Builder().build();
         
-        // Penting: Pastikan AdView di set visible saat berhasil
         adView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
@@ -147,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
                     "  if(p && p.offsetParent !== null) {" + 
                     "    var rect = p.getBoundingClientRect();" +
                     "    var y = rect.top + window.scrollY;" +
-                    "    Android.setAdPosition(" + adIndex + ", Math.round(y));" + // Gunakan Math.round()
+                    "    Android.setAdPosition(" + adIndex + ", Math.round(y));" + 
                     "  }" +
                     "})()";
                 webView.post(() -> webView.loadUrl(jsCode));
@@ -155,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                adContainer.setVisibility(View.GONE); // Sembunyikan jika gagal
+                adContainer.setVisibility(View.GONE); 
                 Log.e("AdMob", "Inline Ad " + adIndex + " failed to load: " + loadAdError.getMessage());
             }
         });
@@ -196,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onAdDismissedFullScreenContent() {
                             webView.goBack();
-                            loadInterstitialAd(); // Muat iklan baru
+                            loadInterstitialAd(); 
                         }
                     });
                     backPressCount = 0;
