@@ -12,12 +12,13 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.util.Log;
-import android.webkit.JavascriptInterface; // Import untuk komunikasi JS
+import android.webkit.JavascriptInterface;
 
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdListener;
+import com.google.gms.ads.AdSize;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
@@ -82,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setBuiltInZoomControls(false);
         webSettings.setDisplayZoomControls(false);
         
-        // KRUSIAL: Tambahkan interface untuk komunikasi JS ke Java (Hanya untuk Iklan In-Feed)
         webView.addJavascriptInterface(new WebAppInterface(), "Android"); 
         
         webView.setWebViewClient(new CustomWebViewClient());
@@ -123,9 +123,16 @@ public class MainActivity extends AppCompatActivity {
             public void onAdLoaded() {
                 Log.d("AdMob", "Inline Ad Loaded. Requesting HTML position.");
                 
-                // Minta HTML untuk mengirim posisi placeholder
-                // Menggunakan hash change untuk memicu kode JS di CustomWebViewClient
-                webView.loadUrl("javascript:window.location.hash='#position_trigger';");
+                // PERBAIKAN KRUSIAL: Panggil JS langsung, JANGAN manipulasi URL hash.
+                String jsCode = "javascript:(function(){" +
+                    "  var p = document.getElementById('native_ad_placeholder');" +
+                    "  if(p) {" +
+                    "    var rect = p.getBoundingClientRect();" +
+                    "    var y = rect.top + window.scrollY;" +
+                    "    Android.setAdPosition(y);" + // Kirim posisi Y ke Java
+                    "  }" +
+                    "})()";
+                webView.loadUrl(jsCode); 
             }
 
             @Override
@@ -145,15 +152,11 @@ public class MainActivity extends AppCompatActivity {
             // yOffset adalah posisi vertikal placeholder di WebView
             Log.d("AdPosition", "Placeholder Y position received: " + yOffset);
             
-            // Perubahan harus dilakukan di UI thread
             webView.post(() -> {
                 FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) adContainerInline.getLayoutParams();
                 
-                // Set margin top iklan agar melayang di atas placeholder di WebView
-                // Mengurangi 55dp (tinggi iklan atas) dari yOffset agar posisi tetap akurat 
-                // terhadap WebView yang dimulai di bawah iklan atas.
-                int offsetAdjustment = (int) (55 * getResources().getDisplayMetrics().density); // Konversi 55dp ke px
-                params.topMargin = yOffset - offsetAdjustment;
+                // Menggunakan Y-offset yang diterima langsung, ini posisi relatif terhadap WebView
+                params.topMargin = yOffset; 
                 
                 adContainerInline.setLayoutParams(params);
                 
@@ -164,31 +167,42 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // =================================================================
-    // LOGIKA ADMOB INTERSTITIAL & BACK BUTTON
+    // LOGIKA ADMOB INTERSTITIAL & WEBVIEW CLIENT
     // =================================================================
+    // ... (Fungsi loadInterstitialAd dan setInterstitialAdCallback tetap sama) ...
     private void loadInterstitialAd() {
-        // ... (fungsi sama seperti sebelumnya) ...
+        AdRequest adRequest = new AdRequest.Builder().build();
+        InterstitialAd.load(this, "ca-app-pub-3940256099942544/1033173712", 
+            adRequest, new InterstitialAdLoadCallback() { 
+                @Override
+                public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                    mInterstitialAd = interstitialAd;
+                    setInterstitialAdCallback();
+                }
+
+                @Override
+                public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                    mInterstitialAd = null;
+                }
+            });
     }
 
     private void setInterstitialAdCallback() {
-        // ... (fungsi sama seperti sebelumnya) ...
+        if (mInterstitialAd != null) {
+            mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                @Override
+                public void onAdDismissedFullScreenContent() {
+                    webView.goBack();
+                    loadInterstitialAd();
+                }
+            });
+        }
     }
-    
+
     private class CustomWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            // KRUSIAL: Tangkap Hash Change untuk Memicu Pengiriman Posisi Iklan
-            if (url.endsWith("#position_trigger")) {
-                view.loadUrl("javascript:(function(){" +
-                    "  var p = document.getElementById('native_ad_placeholder');" +
-                    "  if(p) {" +
-                    "    var rect = p.getBoundingClientRect();" +
-                    "    var y = rect.top + window.scrollY;" +
-                    "    Android.setAdPosition(y);" + // Kirim posisi Y ke Java
-                    "  }" +
-                    "})()");
-                return true;
-            }
+            // Hapus logika penangkapan hash change yang menyebabkan reload dan teks #position_trigger
             if (url.startsWith("file:///android_asset/")) {
                  view.loadUrl(url);
                  return true;
@@ -197,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
+    // ... (Fungsi onKeyDown tetap sama) ...
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
