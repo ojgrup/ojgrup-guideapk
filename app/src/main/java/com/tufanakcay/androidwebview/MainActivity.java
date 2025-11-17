@@ -1,4 +1,4 @@
-package com.tufanakcay.androidwebview; // Package Anda sudah benar
+package com.tufanakcay.androidwebview; 
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,7 +15,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
-import com.tufanakcay.androidwebview.R; // KOREKSI: Import R eksplisit
+import com.tufanakcay.androidwebview.R; // Import R eksplisit
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        // Memastikan aplikasi menggunakan layout fullscreen
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
@@ -71,14 +72,14 @@ public class MainActivity extends AppCompatActivity {
         adViews[1] = findViewById(R.id.ad_view_inline_2);
         adViews[2] = findViewById(R.id.ad_view_inline_3);
         
-        // 5. Penyesuaian Insets untuk Memposisikan Konten
+        // 5. KOREKSI BLOK INSETS: Menggunakan API yang lebih kompatibel
         final FrameLayout mainLayout = findViewById(R.id.main_layout);
         if (mainLayout != null) {
             ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
-                WindowInsetsCompat systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
                 
-                // KOREKSI SINTAKS DI SINI: Mengganti .top dengan .getTop()
-                int topInset = systemInsets.getTop(); 
+                // KOREKSI: Menggunakan getSystemWindowInsetTop()
+                // Ini adalah API yang lebih tua dan lebih kompatibel dengan versi AndroidX yang berbeda.
+                int topInset = insets.getSystemWindowInsetTop(); 
                 
                 // Terapkan padding atas pada WebView sama dengan tinggi Status Bar
                 webView.setPadding(
@@ -93,9 +94,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
-    // ... (Sisa kode WebAppInterface, loadInlineAd, loadInterstitialAd, dan onKeyDown) ...
-    // ... (Semua fungsi di bawah ini tidak berubah) ...
-
+    // =======================================================
+    // JAVA INTERFACE & NAVIGATION LOGIC
+    // =======================================================
     public class WebAppInterface {
         
         @JavascriptInterface
@@ -162,6 +163,10 @@ public class MainActivity extends AppCompatActivity {
 
         adView.loadAd(adRequest);
     }
+    
+    // =======================================================
+    // IKLAN INTERSTITIAL & BACK BUTTON LOGIC
+    // =======================================================
     
     private void loadInterstitialAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
