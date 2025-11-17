@@ -6,6 +6,7 @@ plugins {
 }
 
 // 2. KODE KRITIS: MEMBACA FILE PROPERTI DI ROOT
+// Pastikan Anda memiliki import java.io.FileInputStream
 def releasePropsFile = rootProject.file('release.properties')
 def releaseProps = new Properties()
 if (releasePropsFile.exists()) {
@@ -60,6 +61,9 @@ android {
 
 // 4. BLOK DEPENDENSI DI AKHIR
 dependencies {
+    // 🔥 KOREKSI KRITIS: Menambahkan core-ktx untuk menyelesaikan error WindowInsetsCompat
+    implementation 'androidx.core:core-ktx:1.10.1' 
+    
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.9.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
