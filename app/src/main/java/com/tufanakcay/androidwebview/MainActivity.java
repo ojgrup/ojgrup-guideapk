@@ -4,8 +4,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import android.graphics.Insets; // Import ini diperlukan untuk mengakses .top pada hasil getInsets()
 
 import android.os.Bundle;
+// ... (import lainnya) ...
+
+// Tambahkan import berikut di bagian atas:
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -15,7 +19,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
-import com.tufanakcay.androidwebview.R; // Import R eksplisit
+import com.tufanakcay.androidwebview.R; 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -24,6 +28,7 @@ import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -72,14 +77,15 @@ public class MainActivity extends AppCompatActivity {
         adViews[1] = findViewById(R.id.ad_view_inline_2);
         adViews[2] = findViewById(R.id.ad_view_inline_3);
         
-        // 5. KOREKSI BLOK INSETS: Menggunakan API yang lebih kompatibel
+        // 5. 🔥 KOREKSI BLOK INSETS: Menggunakan SINTAKS VERSI BARU
         final FrameLayout mainLayout = findViewById(R.id.main_layout);
         if (mainLayout != null) {
             ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
                 
-                // KOREKSI: Menggunakan getSystemWindowInsetTop()
-                // Ini adalah API yang lebih tua dan lebih kompatibel dengan versi AndroidX yang berbeda.
-                int topInset = insets.getSystemWindowInsetTop(); 
+                // Menggunakan sintaks modern: insets.getInsets(Type).top
+                // Ini seharusnya didukung oleh core-ktx:1.10.1 yang kita tambahkan.
+                Insets systemWindowInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars()); 
+                int topInset = systemWindowInsets.top;
                 
                 // Terapkan padding atas pada WebView sama dengan tinggi Status Bar
                 webView.setPadding(
