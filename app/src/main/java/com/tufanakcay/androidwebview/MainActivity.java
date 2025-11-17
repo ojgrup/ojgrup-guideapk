@@ -18,8 +18,8 @@ import android.widget.Button;
 import android.view.LayoutInflater;
 import android.graphics.Color;
 
-// 🔥 PERBAIKAN 1: Tambahkan semua import AdMob yang hilang (AdLoader, dll.)
-import com.google.android.gms.ads.adloader.AdLoader;
+// 🔥 PERBAIKAN KRITIS: MENGUBAH LOKASI AdLoader
+import com.google.android.gms.ads.AdLoader; // <--- DIUBAH DARI .adloader.AdLoader
 import com.google.android.gms.ads.nativead.NativeAd;
 import com.google.android.gms.ads.nativead.NativeAdView;
 
@@ -106,8 +106,7 @@ public class MainActivity extends AppCompatActivity {
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
         
-        // 🔥 PERBAIKAN 2: Mengganti konstanta TEXT_AUTOSIZE yang hilang
-        // Gunakan SINGLE_COLUMN yang lebih stabil atau hilangkan sama sekali jika CSS Anda sudah modern
+        // Menggunakan LayoutAlgorithm yang stabil
         webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN); 
         
         wv.setWebViewClient(new WebViewClient());
@@ -146,7 +145,6 @@ public class MainActivity extends AppCompatActivity {
             this,
             APP_OPEN_AD_UNIT_ID,
             new AdRequest.Builder().build(),
-            // 🔥 PERBAIKAN 3: Mengganti ORIENTATION_PORTRAIT yang hilang
             AppOpenAd.APP_OPEN_AD_ORIENTATION_PORTRAIT, 
             new AppOpenAd.AppOpenAdLoadCallback() {
                 @Override
@@ -182,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
     // =======================================================
 
     private void loadNativeAd(final FrameLayout placeholder) {
-        // AdLoader sudah ditemukan karena perbaikan import di atas
+        // AdLoader sekarang sudah benar karena perbaikan import di atas
         AdLoader adLoader = new AdLoader.Builder(this, NATIVE_AD_UNIT_ID)
             .forNativeAd(nativeAd -> {
                 displayNativeAd(nativeAd, placeholder);
@@ -201,13 +199,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayNativeAd(NativeAd nativeAd, FrameLayout placeholder) {
         // Inflate layout Native Ad View Anda dari R.layout.native_ad_template
-        // 🔥 PERBAIKAN 4: Asumsi R.layout.native_ad_template sekarang tersedia
         NativeAdView adView = (NativeAdView) LayoutInflater.from(this)
             .inflate(R.layout.native_ad_template, null); 
             
         try {
             // Set View untuk Headline, Body, CTA, dan Icon
-            // 🔥 PERBAIKAN 4: Asumsi ID ad_headline, dll. sekarang tersedia dari native_ad_template.xml
             adView.setHeadlineView(adView.findViewById(R.id.ad_headline));
             adView.setBodyView(adView.findViewById(R.id.ad_body));
             adView.setCallToActionView(adView.findViewById(R.id.ad_call_to_action));
