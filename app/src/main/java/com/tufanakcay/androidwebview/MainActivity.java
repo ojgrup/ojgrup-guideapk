@@ -2,11 +2,18 @@ package com.tufanakcay.androidwebview;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
+import android.os.Build;
+import android.graphics.Color; // Import untuk menggunakan warna
 
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager; 
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -30,42 +37,51 @@ public class MainActivity extends AppCompatActivity {
     private InterstitialAd mInterstitialAd;
     private int backPressCount = 0;
     private static final int AD_SHOW_THRESHOLD = 2; 
-    private static final String INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"; // TEST ID
+    private static final String INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"; 
 
     private FrameLayout[] adContainers = new FrameLayout[3];
     private AdView[] adViews = new AdView[3];
     
-    // 🔥 VARIABEL BARU: Menyimpan tinggi Status Bar untuk digunakan dalam penempatan iklan
     private int statusBarHeight = 0; 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Memastikan aplikasi menggunakan layout fullscreen
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        // 1. 🔥 PERBAIKAN STATUS BAR: Atur Status Bar agar memiliki warna solid (misalnya, putih)
+        Window window = getWindow();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            // Hapus flag FULLSCREEN/LAYOUT_FULLSCREEN yang menyebabkan transparan/overlay
+            window.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS); 
+            
+            // Atur warna Status Bar menjadi Putih Solid (Anda bisa ganti Color.WHITE dengan warna lain)
+            window.setStatusBarColor(Color.WHITE); 
+            
+            // Opsional: Pastikan ikon Status Bar terlihat jelas di latar belakang terang
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }
+        }
         
         setContentView(R.layout.activity_main);
 
-        // 1. Inisialisasi WebView
+        // 2. Inisialisasi WebView
         webView = findViewById(R.id.webView);
         WebSettings webSettings = webView.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webView.addJavascriptInterface(new WebAppInterface(), "Android"); 
         
-        // 2. Muat URL AWAL
+        // 3. Muat URL AWAL
         webView.setWebViewClient(new WebViewClient());
         webView.loadUrl("file:///android_asset/splash.html"); 
 
-        // 3. Inisialisasi AdMob
+        // 4. Inisialisasi AdMob dan Ad Inline Containers (Sama seperti sebelumnya)
         MobileAds.initialize(this, initializationStatus -> {
             Log.d("AdMob", "AdMob initialized successfully.");
             loadInterstitialAd(); 
         });
 
-        // 4. Inisialisasi Ad Inline Containers
         adContainers[0] = findViewById(R.id.ad_container_inline_1);
         adContainers[1] = findViewById(R.id.ad_container_inline_2);
         adContainers[2] = findViewById(R.id.ad_container_inline_3);
@@ -74,35 +90,32 @@ public class MainActivity extends AppCompatActivity {
         adViews[1] = findViewById(R.id.ad_view_inline_2);
         adViews[2] = findViewById(R.id.ad_view_inline_3);
         
-        // 5. 🔥 BLOK INSETS PERBAIKAN: Mengatasi masalah Status Bar dan menyimpan tingginya
+        // 5. BLOK INSETS: Mendapatkan tinggi Status Bar hanya untuk penempatan iklan
+        // Jika Anda menggunakan tema non-fullscreen/noActionBar, FrameLayout seharusnya tidak perlu setFitsSystemWindows(true)
         final FrameLayout mainLayout = findViewById(R.id.main_layout);
         if (mainLayout != null) {
-            // Memberi tahu FrameLayout untuk mengelola insets, yang seharusnya sudah ada di XML
-            mainLayout.setFitsSystemWindows(true); 
             
-            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
+            ViewCompat.setOnApplyWindowInsetsListener(mainLayout, (v, insets) -> {
                 
                 // Mendapatkan tinggi Status Bar (Top Inset)
-                androidx.core.graphics.Insets systemWindowInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars()); 
-                statusBarHeight = systemWindowInsets.top; // 🔥 SIMPAN TINGGI STATUS BAR
+                Insets systemWindowInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars()); 
+                statusBarHeight = systemWindowInsets.top; 
                 
-                // Terapkan padding atas pada WebView
-                if (webView.getPaddingTop() != statusBarHeight) {
-                    webView.setPadding(
-                        webView.getPaddingLeft(), 
-                        statusBarHeight, 
-                        webView.getPaddingRight(), 
-                        webView.getPaddingBottom()
-                    );
+                // 🔥 PENTING: Hapus padding pada WebView jika menggunakan Status Bar solid.
+                // WebView akan otomatis didorong ke bawah oleh Status Bar.
+                // Kita HANYA butuh tinggi Status Bar (statusBarHeight) untuk penempatan iklan di Java.
+                if (webView.getPaddingTop() != 0) {
+                    webView.setPadding(0, 0, 0, 0); 
+                    Log.d("Insets", "WebView Padding Top reset to 0.");
                 }
                 
-                return insets; // Mengembalikan insets agar tidak dikonsumsi
+                return insets; 
             });
         }
     }
     
     // =======================================================
-    // JAVA INTERFACE & LOGIKA IKLAN INLINE
+    // JAVA INTERFACE & LOGIKA IKLAN INLINE (Sama seperti sebelumnya, tapi menggunakan statusBarHeight)
     // =======================================================
     public class WebAppInterface {
         
@@ -116,9 +129,11 @@ public class MainActivity extends AppCompatActivity {
         
         @JavascriptInterface
         public void loadAllInlineAds() {
-            for (int i = 0; i < 3; i++) {
-                loadInlineAd(adViews[i], adContainers[i], i + 1);
-            }
+            webView.postDelayed(() -> {
+                for (int i = 0; i < 3; i++) {
+                    loadInlineAd(adViews[i], adContainers[i], i + 1);
+                }
+            }, 500); 
         }
 
         @JavascriptInterface
@@ -130,11 +145,19 @@ public class MainActivity extends AppCompatActivity {
                         if (targetContainer.getLayoutParams() instanceof FrameLayout.LayoutParams) {
                             FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) targetContainer.getLayoutParams();
                             
-                            // 🔥 PERBAIKAN: Tambahkan statusBarHeight untuk offset posisi iklan yang akurat
+                            // Hitungan Y: Karena Status Bar solid, WebView mulai dari bawah Status Bar.
+                            // Kita hanya perlu menggunakan yOffset dari HTML, KECUALI jika WebView memiliki margin.
+                            // Mari kita coba HANYA menggunakan yOffset, karena padding WebView sudah 0.
+                            params.topMargin = yOffset; 
+                            
+                            // ATAU, jika masih salah, gunakan: params.topMargin = yOffset + statusBarHeight;
+                            // Untuk amannya, kita akan kembalikan ke perhitungan sebelumnya yang mencakup statusBarHeight
+                            // karena posisi Ad Container dihitung relatif ke LAYOUT UTAMA, bukan WebView.
                             params.topMargin = yOffset + statusBarHeight; 
                             
                             targetContainer.setLayoutParams(params);
                             targetContainer.setVisibility(View.VISIBLE);
+                            Log.d("AdPos", "Ad " + adIndex + " positioned at Y: " + params.topMargin);
                         }
                     }
                 }
@@ -142,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
-    // ... loadInlineAd() dan semua logika Iklan Interstitial & Back Button sama persis seperti sebelumnya ...
+    // ... loadInlineAd(), loadInterstitialAd(), dan onKeyDown(..) tetap sama ...
 
     private void loadInlineAd(AdView adView, FrameLayout adContainer, int adIndex) {
         if (adView == null || adContainer == null) {
@@ -155,7 +178,6 @@ public class MainActivity extends AppCompatActivity {
         adView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
-                // Setelah iklan dimuat, panggil JS untuk memposisikannya
                 String jsCode = "javascript:(function(){" +
                     "  var p = document.getElementById('native_ad_placeholder_" + adIndex + "');" +
                     "  if(p && p.offsetParent !== null) {" + 
