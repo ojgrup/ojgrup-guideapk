@@ -9,24 +9,6 @@
     android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
-    <FrameLayout
-        android:id="@+id/ad_container"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:paddingTop="25dp"       android:background="#000000"     app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:visibility="gone" >
-
-        <com.google.android.gms.ads.AdView
-            android:id="@+id/ad_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            ads:adSize="BANNER"
-            ads:adUnitId="ca-app-pub-3940256099942544/6300978111" />
-    </FrameLayout>
-
     <WebView
         android:id="@+id/webView"
         android:layout_width="0dp"
@@ -36,20 +18,55 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ad_container" />
-
+        app:layout_constraintTop_toTopOf="parent" /> 
+        
     <FrameLayout
-        android:id="@+id/ad_container_inline"
+        android:id="@+id/ad_container_inline_1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-
         app:layout_constraintTop_toTopOf="@+id/webView"
         android:visibility="gone" >
 
         <com.google.android.gms.ads.AdView
-            android:id="@+id/ad_view_inline"
+            android:id="@+id/ad_view_inline_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            ads:adSize="MEDIUM_RECTANGLE"
+            ads:adUnitId="ca-app-pub-3940256099942544/6300978111" />
+    </FrameLayout>
+    
+    <FrameLayout
+        android:id="@+id/ad_container_inline_2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/webView"
+        android:visibility="gone" >
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/ad_view_inline_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            ads:adSize="MEDIUM_RECTANGLE"
+            ads:adUnitId="ca-app-pub-3940256099942544/6300978111" />
+    </FrameLayout>
+    
+    <FrameLayout
+        android:id="@+id/ad_container_inline_3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/webView"
+        android:visibility="gone" >
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/ad_view_inline_3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
