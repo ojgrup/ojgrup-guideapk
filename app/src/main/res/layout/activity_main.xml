@@ -3,10 +3,10 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_layout" 
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#f4f4f9"
-    android:paddingTop="20dp" 
     tools:context=".MainActivity">
 
     <FrameLayout
@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             app:adSize="MEDIUM_RECTANGLE"
-            app:adUnitId="ca-app-pub-3940256099942544/2247696110" /> 
+            app:adUnitId="ca-app-pub-3940256099942544/3986624511" /> 
             </FrameLayout>
     
     <FrameLayout
@@ -34,8 +34,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             app:adSize="MEDIUM_RECTANGLE"
-            app:adUnitId="ca-app-pub-3940256099942544/2247696110" />
-            </FrameLayout>
+            app:adUnitId="ca-app-pub-3940256099942544/3986624511" />
+    </FrameLayout>
 
     <FrameLayout
         android:id="@+id/ad_container_inline_3" 
@@ -48,8 +48,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             app:adSize="MEDIUM_RECTANGLE"
-            app:adUnitId="ca-app-pub-3940256099942544/2247696110" />
-            </FrameLayout>
+            app:adUnitId="ca-app-pub-3940256099942544/3986624511" />
+    </FrameLayout>
 
     <WebView
         android:id="@+id/webView"
