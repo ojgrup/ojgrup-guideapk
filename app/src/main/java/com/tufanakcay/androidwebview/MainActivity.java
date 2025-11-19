@@ -59,11 +59,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         
         // PENGATURAN STATUS BAR SOLID (Putih)
+        /*
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(Color.WHITE); 
         window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-        
+        */
         setContentView(R.layout.activity_main);
 
         // 1. Inisialisasi AdMob
