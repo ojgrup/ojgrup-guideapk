@@ -1,4 +1,4 @@
-package com.tufanakcay.androidwebview; 
+package com.tufanakcay.androidwebview;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,6 +31,11 @@ import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.appopen.AppOpenAd; 
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+
+// 🔥 IMPORTS TAMBAHAN UNTUK MEMBACA FILE HTML DARI ASSETS
+import android.content.res.AssetManager;
+import java.io.InputStream;
+import java.io.IOException;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -103,54 +108,60 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // Fungsi bantuan untuk konfigurasi WebView
-   /* private void setupWebView(WebView wv, String url) {
+    private void setupWebView(WebView wv, String url) {
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
         
         // Menggunakan LayoutAlgorithm yang stabil
         webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN); 
         
-        wv.setWebViewClient(new WebViewClient());
+        // 🔥 PERBAIKAN: Implementasi WebViewClient untuk membaca file secara manual
+        wv.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                
+                // 1. Jika tautan adalah tautan eksternal (HTTP/HTTPS)
+                if (url.startsWith("http://") || url.startsWith("https://")) {
+                    // Biarkan WebView menanganinya (return false)
+                    return false; 
+                    
+                } else if (url.endsWith(".html") || url.endsWith(".htm")) {
+                    // 2. Jika tautan adalah file HTML lokal (misalnya: guide1.html)
+                    
+                    try {
+                        // Dapatkan AssetManager
+                        AssetManager assetManager = getAssets();
+                        
+                        // Buka file yang ditargetkan (url adalah nama file, contoh: "guide1.html")
+                        InputStream inputStream = assetManager.open(url);
+                        int size = inputStream.available();
+                        byte[] buffer = new byte[size];
+                        inputStream.read(buffer);
+                        inputStream.close();
+                        
+                        String htmlContent = new String(buffer, "UTF-8");
+                        
+                        // Muat konten HTML baru dengan Base URL yang benar
+                        view.loadDataWithBaseURL("file:///android_asset/", htmlContent, "text/html", "UTF-8", null);
+                        Log.d("WebView", "Successfully loaded local file: " + url);
+                        return true; // Pemuatan berhasil ditangani oleh aplikasi
+                        
+                    } catch (IOException e) {
+                        // Log error dan biarkan WebView menampilkan pesan error default (return false)
+                        Log.e("WebView", "Gagal memuat file lokal: " + url, e);
+                        return false; 
+                    }
+                    
+                } else {
+                    // 3. Jika tautan tidak dikenal atau tautan relatif tanpa ekstensi
+                    // Cegah WebView memuatnya untuk menghindari layar kosong (about:blank)
+                    return true;
+                }
+            }
+        }); 
+        
         wv.loadUrl(url);
     }
-   */ 
-// MainActivity.java
-
-private void setupWebView(WebView wv, String url) {
-    // ... (Kode webSettings lainnya) ...
-    
-    // 🔥 PERBAIKAN AKHIR: Menyederhanakan logika pemuatan file lokal
-    wv.setWebViewClient(new WebViewClient() {
-        @Override
-        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-            
-            // 1. Jika tautan adalah tautan eksternal (HTTP/HTTPS)
-            if (url.startsWith("http://") || url.startsWith("https://")) {
-                // Biarkan WebView menanganinya (atau buka di browser eksternal)
-                return false; 
-                
-            } else if (url.endsWith(".html") || url.endsWith(".htm")) {
-                // 2. Jika tautan adalah file HTML lokal (misalnya: guide1.html)
-                
-                // Coba memuat file dengan path absolut tunggal yang jelas
-                // (Ini mengabaikan kemungkinan adanya sub-folder,
-                // karena semua file Anda berada di root 'assets')
-                String path = "file:///android_asset/" + url;
-                
-                view.loadUrl(path); 
-                return true; // Aplikasi menangani pemuatan
-                
-            } else {
-                // 3. Jika tautan tidak dikenal atau tautan relatif tanpa ekstensi
-                // Cegah WebView memuatnya untuk menghindari layar kosong (about:blank)
-                return true;
-            }
-        }
-    }); 
-    
-    wv.loadUrl(url);
-}
-    
     
     // =======================================================
     // FUNGSI IKLAN ADMOB
