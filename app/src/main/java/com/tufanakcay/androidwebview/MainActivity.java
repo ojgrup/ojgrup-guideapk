@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // Fungsi bantuan untuk konfigurasi WebView
-    private void setupWebView(WebView wv, String url) {
+   /* private void setupWebView(WebView wv, String url) {
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
         
@@ -113,7 +113,57 @@ public class MainActivity extends AppCompatActivity {
         wv.setWebViewClient(new WebViewClient());
         wv.loadUrl(url);
     }
+   */
 
+private void setupWebView(WebView wv, String url) {
+    WebSettings webSettings = wv.getSettings();
+    webSettings.setJavaScriptEnabled(true);
+    
+    // Ini membantu layout HTML Anda agar responsif di WebView
+    webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN); 
+    
+    // 🔥 PERBAIKAN UTAMA: WebViewClient Kustom untuk Memuat Tautan Internal
+    wv.setWebViewClient(new WebViewClient() {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            
+            // 1. Cek apakah tautan adalah tautan eksternal (HTTP/HTTPS)
+            if (url.startsWith("http://") || url.startsWith("https://")) {
+                // Buka tautan eksternal di browser biasa (bukan di WebView)
+                // Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                // startActivity(browserIntent);
+                
+                // Atau, biarkan WebView yang menanganinya, tapi ini bisa mengganggu UX
+                return false; 
+                
+            } else if (url.endsWith(".html") || url.endsWith(".htm")) {
+                // 2. Jika tautan adalah file HTML lokal (misalnya: guide1.html)
+                
+                // Dapatkan Base URL saat ini (misal: file:///android_asset/fragment_1.html)
+                String baseUrl = view.getUrl(); 
+                
+                if (baseUrl != null && baseUrl.startsWith("file:///android_asset/")) {
+                    // Ekstrak path folder: file:///android_asset/
+                    String path = "file:///android_asset/" + url;
+                    
+                    // Muat URL absolut yang benar
+                    view.loadUrl(path); 
+                    return true; // Aplikasi telah menangani pemuatan
+                }
+            }
+
+            // 3. Untuk tautan yang tidak dikenal (seperti 'tel:', 'mailto:', atau tautan relatif yang tidak terstruktur)
+            // Biarkan WebView mengabaikannya (return true) atau biarkan default (return false)
+            // Mengembalikan 'true' di sini akan mencegah konten menghilang
+            return true;
+        }
+    }); 
+    
+    // Muat URL awal (misalnya: file:///android_asset/fragment_1.html)
+    wv.loadUrl(url);
+}
+
+    
     // =======================================================
     // FUNGSI IKLAN ADMOB
     // =======================================================
