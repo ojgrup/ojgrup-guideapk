@@ -29,11 +29,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="16dp">
-
+                android:paddingBottom="16dp"> 
                 <WebView
                     android:id="@+id/webView1"
                     android:layout_width="match_parent"
@@ -50,7 +46,8 @@
                     android:id="@+id/native_ad_placeholder_1"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="5dp"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
                     android:layout_marginBottom="10dp" />
 
                 <WebView
@@ -69,21 +66,24 @@
                     android:id="@+id/native_ad_placeholder_2"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="5dp"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
                     android:layout_marginBottom="10dp" />
 
                 <FrameLayout
                     android:id="@+id/native_ad_placeholder_3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="5dp"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
                     android:layout_marginBottom="10dp" />
 
                 <FrameLayout
                     android:id="@+id/native_ad_placeholder_4"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="5dp"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
                     android:layout_marginBottom="10dp" />
 
             </LinearLayout>
