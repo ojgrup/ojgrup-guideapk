@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Button;
 import android.view.LayoutInflater;
+import android.widget.LinearLayout; // Import untuk LinearLayout
 
 import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.nativead.NativeAd;
@@ -28,12 +29,16 @@ import com.google.android.gms.ads.appopen.AppOpenAd;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
-// Import yang tidak digunakan telah dihapus (Window, WindowManager, Color, AssetManager, InputStream, IOException)
 
 public class MainActivity extends AppCompatActivity {
 
-    // ✅ PERBAIKAN: Deklarasi webView4 dan nativeAdPlaceholder4
-    private WebView webView1, webView2, webView3, webView4; 
+    // ✅ DEKLARASI WEBVIEW UTAMA
+    private WebView webView1, webView2, webView3, webView4;
+    private WebView webViewDetail; // WebView khusus untuk menampilkan Konten Detail
+    
+    // ✅ DEKLARASI LAYOUT
+    private LinearLayout menuLayout; // Wadah untuk seluruh tampilan menu (perlu ID di XML)
+
     private FrameLayout nativeAdPlaceholder1, nativeAdPlaceholder2, nativeAdPlaceholder3, nativeAdPlaceholder4; 
     private AdView adViewTopBanner; 
 
@@ -70,45 +75,66 @@ public class MainActivity extends AppCompatActivity {
         // 2. Inisialisasi Views
         adViewTopBanner = findViewById(R.id.ad_view_top_banner);
         
+        menuLayout = findViewById(R.id.menu_layout); // ✅ Inisialisasi Layout Menu (Pastikan ID ada di XML)
+        
         webView1 = findViewById(R.id.webView1);
         webView2 = findViewById(R.id.webView2);
         webView3 = findViewById(R.id.webView3);
-        webView4 = findViewById(R.id.webView4); // ✅ webView4
+        webView4 = findViewById(R.id.webView4);
+        webViewDetail = findViewById(R.id.webViewDetail); // ✅ Inisialisasi WebView Detail
         
         nativeAdPlaceholder1 = findViewById(R.id.native_ad_placeholder_1);
         nativeAdPlaceholder2 = findViewById(R.id.native_ad_placeholder_2);
         nativeAdPlaceholder3 = findViewById(R.id.native_ad_placeholder_3);
-        nativeAdPlaceholder4 = findViewById(R.id.native_ad_placeholder_4); // ✅ nativeAdPlaceholder4
+        nativeAdPlaceholder4 = findViewById(R.id.native_ad_placeholder_4);
 
         // 3. Muat Iklan Banner
         loadTopBannerAd();
 
         // 4. Konfigurasi WebView dan Muat Fragment HTML
-        setupWebView(webView1, "file:///android_asset/1/menu1-2.html");
-        setupWebView(webView2, "file:///android_asset/1/menu3-4.html");
-        setupWebView(webView3, "file:///android_asset/1/menu5-6.html"); 
-        setupWebView(webView4, "file:///android_asset/1/menu7-8.html"); // ✅ Pemuatan menu7-8.html
+        setupWebViewMenu(webView1, "file:///android_asset/1/menu1-2.html"); // Ganti setupWebView menjadi setupWebViewMenu
+        setupWebViewMenu(webView2, "file:///android_asset/1/menu3-4.html"); 
+        setupWebViewMenu(webView3, "file:///android_asset/1/menu5-6.html"); 
+        setupWebViewMenu(webView4, "file:///android_asset/1/menu7-8.html"); 
         
-        // 5. Muat Iklan Native
+        // 5. Konfigurasi WebView Detail (WebView ini tidak memuat URL awal)
+        setupWebViewDetail(webViewDetail);
+
+        // 6. Muat Iklan Native
         loadNativeAd(nativeAdPlaceholder1);
         loadNativeAd(nativeAdPlaceholder2);
         loadNativeAd(nativeAdPlaceholder3);
-        loadNativeAd(nativeAdPlaceholder4); // ✅ Pemuatan iklan native 4
+        loadNativeAd(nativeAdPlaceholder4); 
     }
     
-    // Fungsi bantuan untuk konfigurasi WebView
-    private void setupWebView(WebView wv, String url) {
+    // =======================================================
+    // FUNGSI WEBVIEW MENU (Menangani klik ke konten detail)
+    // =======================================================
+    private void setupWebViewMenu(WebView wv, String url) {
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN); 
+        webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
         
-        // 🔥 KOREKSI KRITIS WebViewClient: 
-        // Dibuat Sederhana agar bisa memuat link HTTPS (GitHub Raw) dan Aset Lokal
+        // 🔥 KOREKSI KRITIS WEBVIEWCLIENT
         wv.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                // Mengembalikan FALSE agar WebView menangani sendiri pemuatan URL
-                // Ini sangat penting untuk memuat link HTTPS (GitHub Raw) yang ada di menu lokal.
+                
+                // 1. Tangkap tautan eksternal (link GitHub Raw)
+                if (url.startsWith("http://") || url.startsWith("https://")) {
+                    
+                    // 2. Muat URL konten detail di webViewDetail
+                    webViewDetail.loadUrl(url); 
+                    
+                    // 3. Tampilkan webViewDetail dan Sembunyikan Layout Menu
+                    menuLayout.setVisibility(View.GONE);
+                    webViewDetail.setVisibility(View.VISIBLE);
+                    
+                    // 4. Mencegah WebView menu memuat URL (return true)
+                    return true; 
+                }
+                
+                // Jika tautan adalah tautan lokal (misalnya CSS/Gambar/Link antar menu), biarkan WebView menanganinya
                 return false; 
             }
         }); 
@@ -117,8 +143,21 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // =======================================================
-    // FUNGSI IKLAN ADMOB
+    // FUNGSI WEBVIEW DETAIL (Setup sederhana untuk konten penuh)
     // =======================================================
+    private void setupWebViewDetail(WebView wv) {
+        WebSettings webSettings = wv.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN);
+
+        // WebView Detail hanya perlu klien dasar untuk memuat konten HTTPS
+        wv.setWebViewClient(new WebViewClient()); 
+    }
+    
+    // =======================================================
+    // FUNGSI IKLAN ADMOB (Tidak ada perubahan)
+    // =======================================================
+    // ... (Fungsi loadTopBannerAd, loadInterstitialAd, loadAppOpenAd, showAppOpenAdIfReady, loadNativeAd, displayNativeAd tetap sama)
 
     private void loadTopBannerAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
@@ -178,7 +217,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
-    // FUNGSI IKLAN NATIVE
     private void loadNativeAd(final FrameLayout placeholder) {
         AdLoader adLoader = new AdLoader.Builder(this, NATIVE_AD_UNIT_ID)
             .forNativeAd(nativeAd -> {
@@ -250,27 +288,35 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // =======================================================
-    // BACK BUTTON
+    // BACK BUTTON (KOREKSI LOGIKA DETAIL)
     // =======================================================
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
             
+            // 1. Jika WebView Detail terlihat, kembalikan ke menu utama
+            if (webViewDetail.getVisibility() == View.VISIBLE) {
+                webViewDetail.setVisibility(View.GONE);
+                menuLayout.setVisibility(View.VISIBLE);
+                return true; 
+            }
+            
+            // 2. Logika Back Button Interstitial Ad (Hanya dijalankan jika di menu utama)
             backPressCount++;
             if (backPressCount >= AD_SHOW_THRESHOLD && mInterstitialAd != null) {
                 mInterstitialAd.show(MainActivity.this);
                 mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
                     @Override
                     public void onAdDismissedFullScreenContent() {
-                        finish(); // Keluar setelah Iklan
+                        finish(); 
                         loadInterstitialAd(); 
                     }
                 });
                 backPressCount = 0;
                 return true;
             } else {
-                finish(); // Keluar tanpa Iklan
+                finish(); 
                 return true;
             }
         }
