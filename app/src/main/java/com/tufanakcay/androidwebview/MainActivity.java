@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-// import android.view.Window; // Dihapus karena tidak digunakan
-// import android.view.WindowManager; // Dihapus karena tidak digunakan
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -16,7 +14,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Button;
 import android.view.LayoutInflater;
-// import android.graphics.Color; // Dihapus karena tidak digunakan
 
 import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.nativead.NativeAd;
@@ -31,16 +28,12 @@ import com.google.android.gms.ads.appopen.AppOpenAd;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
-import android.content.res.AssetManager;
-import java.io.InputStream;
-import java.io.IOException;
-
+// Import yang tidak digunakan telah dihapus (Window, WindowManager, Color, AssetManager, InputStream, IOException)
 
 public class MainActivity extends AppCompatActivity {
 
-    // 🔴 PERBAIKAN 1: TAMBAH webView4
-    private WebView webView1, webView2, webView3, webView4;
-    // 🔴 PERBAIKAN 2: TAMBAH nativeAdPlaceholder4
+    // ✅ PERBAIKAN: Deklarasi webView4 dan nativeAdPlaceholder4
+    private WebView webView1, webView2, webView3, webView4; 
     private FrameLayout nativeAdPlaceholder1, nativeAdPlaceholder2, nativeAdPlaceholder3, nativeAdPlaceholder4; 
     private AdView adViewTopBanner; 
 
@@ -80,86 +73,43 @@ public class MainActivity extends AppCompatActivity {
         webView1 = findViewById(R.id.webView1);
         webView2 = findViewById(R.id.webView2);
         webView3 = findViewById(R.id.webView3);
-        // 🔴 PERBAIKAN 3: INISIALISASI webView4
-        webView4 = findViewById(R.id.webView4); 
+        webView4 = findViewById(R.id.webView4); // ✅ webView4
         
         nativeAdPlaceholder1 = findViewById(R.id.native_ad_placeholder_1);
         nativeAdPlaceholder2 = findViewById(R.id.native_ad_placeholder_2);
         nativeAdPlaceholder3 = findViewById(R.id.native_ad_placeholder_3);
-        // 🔴 PERBAIKAN 4: INISIALISASI nativeAdPlaceholder4
-        nativeAdPlaceholder4 = findViewById(R.id.native_ad_placeholder_4);
+        nativeAdPlaceholder4 = findViewById(R.id.native_ad_placeholder_4); // ✅ nativeAdPlaceholder4
 
         // 3. Muat Iklan Banner
         loadTopBannerAd();
 
-        // 4. Konfigurasi WebView dan Muat Fragment HTML (Menggunakan folder /1/)
+        // 4. Konfigurasi WebView dan Muat Fragment HTML
         setupWebView(webView1, "file:///android_asset/1/menu1-2.html");
         setupWebView(webView2, "file:///android_asset/1/menu3-4.html");
         setupWebView(webView3, "file:///android_asset/1/menu5-6.html"); 
-        // 🔴 PERBAIKAN 5: Panggil setupWebView untuk webView4
-        setupWebView(webView4, "file:///android_asset/1/menu7-8.html"); 
+        setupWebView(webView4, "file:///android_asset/1/menu7-8.html"); // ✅ Pemuatan menu7-8.html
         
         // 5. Muat Iklan Native
         loadNativeAd(nativeAdPlaceholder1);
         loadNativeAd(nativeAdPlaceholder2);
         loadNativeAd(nativeAdPlaceholder3);
-        // 🔴 PERBAIKAN 6: Muat Iklan Native untuk Placeholder 4
-        loadNativeAd(nativeAdPlaceholder4); 
+        loadNativeAd(nativeAdPlaceholder4); // ✅ Pemuatan iklan native 4
     }
     
     // Fungsi bantuan untuk konfigurasi WebView
     private void setupWebView(WebView wv, String url) {
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        
-        // Menggunakan LayoutAlgorithm yang stabil
         webSettings.setLayoutAlgorithm(WebSettings.LayoutAlgorithm.SINGLE_COLUMN); 
         
-        // 🔥 PERBAIKAN: Implementasi WebViewClient untuk membaca file secara manual
+        // 🔥 KOREKSI KRITIS WebViewClient: 
+        // Dibuat Sederhana agar bisa memuat link HTTPS (GitHub Raw) dan Aset Lokal
         wv.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                
-                // 1. Jika tautan adalah tautan eksternal (HTTP/HTTPS)
-                if (url.startsWith("http://") || url.startsWith("https://")) {
-                    // Biarkan WebView menanganinya (return false)
-                    return false; 
-                    
-                } else if (url.endsWith(".html") || url.endsWith(".htm")) {
-                    // 2. Jika tautan adalah file HTML lokal (misalnya: guide1.html)
-                    
-                    try {
-                        // Dapatkan AssetManager
-                        AssetManager assetManager = getAssets();
-                        
-                        // Buka file yang ditargetkan (url adalah nama file, contoh: "guide1.html")
-                        // PERHATIAN: Ini hanya akan berfungsi jika link di HTML adalah path relatif, 
-                        // BUKAN URL GITHUB RAW. Namun, kita sepakat menggunakan Hybrid (GitHub Raw)
-                        // sehingga bagian ini MUNGKIN TIDAK DIBUTUHKAN (atau disesuaikan).
-                        
-                        // Jika Anda menggunakan Hybrid Content (GitHub Raw) seperti yang kita sepakati:
-                        // Link di menu1-2.html seharusnya adalah URL GitHub Raw Penuh. 
-                        // Oleh karena itu, logika di sini harus diperiksa ulang.
-                        
-                        // *Untuk saat ini, kita ikuti logika kode Anda, tetapi Anda harus tahu*
-                        // *bahwa ini berpotensi konflik dengan strategi Hybrid Content*
-
-                        // Implementasi pembacaan file lokal Anda (yang berpotensi konflik dengan Hybrid)
-                        // InputStream inputStream = assetManager.open(url); 
-                        // ...
-                        
-                        return false; // Biarkan WebView mencoba memuat, termasuk asset lokal (file:///android_asset)
-                        
-                    } catch (Exception e) { // Ubah IOException menjadi Exception
-                        Log.e("WebView", "Terjadi error saat mencoba memuat: " + url, e);
-                        return false; 
-                    }
-                    
-                } else {
-                    // 3. Jika tautan tidak dikenal atau tautan relatif tanpa ekstensi
-                    // return true; // (Dikembalikan ke false untuk penanganan tautan yang lebih umum)
-                    return false;
-                }
+                // Mengembalikan FALSE agar WebView menangani sendiri pemuatan URL
+                // Ini sangat penting untuk memuat link HTTPS (GitHub Raw) yang ada di menu lokal.
+                return false; 
             }
         }); 
         
@@ -167,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // =======================================================
-    // FUNGSI IKLAN ADMOB (Tidak ada perubahan)
+    // FUNGSI IKLAN ADMOB
     // =======================================================
 
     private void loadTopBannerAd() {
@@ -228,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
-    // FUNGSI IKLAN NATIVE (Tidak ada perubahan fungsional, hanya penambahan pemanggilan)
+    // FUNGSI IKLAN NATIVE
     private void loadNativeAd(final FrameLayout placeholder) {
         AdLoader adLoader = new AdLoader.Builder(this, NATIVE_AD_UNIT_ID)
             .forNativeAd(nativeAd -> {
@@ -247,7 +197,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void displayNativeAd(NativeAd nativeAd, FrameLayout placeholder) {
-        // ... (Kode displayNativeAd tidak berubah)
         NativeAdView adView = (NativeAdView) LayoutInflater.from(this)
             .inflate(R.layout.native_ad_template, null); 
             
@@ -301,7 +250,7 @@ public class MainActivity extends AppCompatActivity {
     }
     
     // =======================================================
-    // BACK BUTTON (Tidak ada perubahan)
+    // BACK BUTTON
     // =======================================================
 
     @Override
