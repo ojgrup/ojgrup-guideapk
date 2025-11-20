@@ -128,5 +128,15 @@
 
 <div id="native_ad_placeholder_4_web" class="ad-slot"></div> 
 
+  <script>
+    // Panggil AndroidAds interface hanya jika tersedia
+    if (typeof AndroidAds !== 'undefined' && AndroidAds.requestNativeAd) {
+        AndroidAds.requestNativeAd("native_ad_placeholder_1");
+        AndroidAds.requestNativeAd("native_ad_placeholder_2");
+        AndroidAds.requestNativeAd("native_ad_placeholder_3");
+        AndroidAds.requestNativeAd("native_ad_placeholder_4");
+    }
+</script>
+  
 </body>
 </html>
