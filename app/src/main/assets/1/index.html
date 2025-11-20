@@ -2,60 +2,63 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <style>
-  /* KOREKSI KRITIS UNTUK SPACING */
-  body { 
-    margin: 0; 
-    padding: 0; 
-    background-color: transparent; 
-    font-family: Arial, sans-serif; 
-  }
-  
-  .card-link { 
-    text-decoration: none; 
-    color: inherit; 
-    display: block; 
-    margin-bottom: 20px; 
-    padding: 0 20px; 
-  }
-  .card-link:first-child {
-      padding-top: 20px; 
-  }
-  .card { 
-    background-color: #fff; 
-    border-radius: 12px; 
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
-    padding: 20px 25px; 
-    display: flex; 
-    align-items: center; 
-  }
-  .card-image { 
-    width: 50px; 
-    height: 50px; 
-    object-fit: contain; 
-    margin-right: 15px; 
-    flex-shrink: 0; 
-  }
-  .card-title { 
-    font-size: 1.0em; 
-    color: #333; 
-    margin: 0; 
-  }
-  /* Style untuk placeholder iklan */
-  .ad-slot {
-      padding: 10px 20px; 
-  }
-
-  .card-link:last-of-type {
-    margin-bottom: 0; 
-}
-/* 🔥 KOREKSI: Menggunakan # untuk ID */
-#native_ad_placeholder_4_web { 
-    padding-bottom: 0;
-}
-  
+<style>
+  /* KOREKSI KRITIS UNTUK STABILITAS TAMPILAN */
+  body { 
+    margin: 0; 
+    padding: 0; 
+    background-color: transparent; 
+    font-family: Arial, sans-serif; 
+  }
+  
+  .card-link { 
+    text-decoration: none; 
+    color: inherit; 
+    display: block; 
+    /* Margin bawah 0 agar kartu dempet */
+    margin: 0 20px 0 20px; 
+  }
+  
+  .card-link:first-child {
+      margin-top: 20px; 
+  }
+  
+  /* Tambahkan margin-bottom pada kartu terakhir agar tidak terlalu dekat dengan footer/bottom of WebView */
+  .card-link:last-of-type {
+      margin-bottom: 20px; 
+  }
+  
+  .card { 
+    background-color: #fff; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+    padding: 20px 25px; 
+    display: flex; 
+    align-items: center; 
+    /* Tambahkan sedikit margin bawah di kartu agar terpisah dari kartu berikutnya saat tidak ada iklan */
+    margin-bottom: 10px; 
+  }
+  
+  .card-image { 
+    width: 50px; 
+    height: 50px; 
+    object-fit: contain; 
+    margin-right: 15px; 
+    flex-shrink: 0; 
+  }
+  .card-title { 
+    font-size: 1.0em; 
+    color: #333; 
+    margin: 0; 
+  }
+  
+  /* 🔥 KOREKSI UTAMA: Hapus semua styling spacing pada placeholder iklan */
+  .ad-slot {
+      margin: 0;
+      padding: 0;
+      min-height: 1px; /* Minimal height agar tidak sepenuhnya hilang */
+  }
 </style>
-    
 </head>
 <body>
 
@@ -82,7 +85,6 @@
     <h3 class="card-title">Implementasi Sistem Awal</h3>
   </div>
 </a>
-
 <a href="https://raw.githubusercontent.com/ojgrup/ojgrup-guideapk/main/app/src/main/assets/1/konten4.html" class="card-link">
   <div class="card">
     <img src="https://raw.githubusercontent.com/ojgrup/ojgrup-guideapk/main/app/src/main/assets/1/icon/icon.jpg" alt="Langkah 4" class="card-image">
@@ -125,7 +127,6 @@
 </a>
 
 <div id="native_ad_placeholder_4_web" class="ad-slot"></div> 
-
 
 </body>
 </html>
