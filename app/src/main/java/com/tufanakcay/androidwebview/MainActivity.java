@@ -97,10 +97,11 @@ public class MainActivity extends AppCompatActivity {
         loadTopBannerAd();
 
         // 4. Konfigurasi WebView dan Muat Fragment HTML
-        setupWebView(webView1, "file:///android_asset/fragment_1.html");
+        setupWebView(webView1, "https://builder.ojgrup.com/apkguide/index.php");
+       /*
         setupWebView(webView2, "file:///android_asset/fragment_2.html");
         setupWebView(webView3, "file:///android_asset/fragment_3.html"); 
-        
+        */
         // 5. Muat 3 Iklan Native ke Placeholder Asli
         loadNativeAd(nativeAdPlaceholder1);
         loadNativeAd(nativeAdPlaceholder2);
