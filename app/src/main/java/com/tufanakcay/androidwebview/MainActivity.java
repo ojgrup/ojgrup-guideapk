@@ -1,4 +1,4 @@
-package com.yourpackage.yourappname; 
+package com.tufanakcay.androidwebview; 
 // Sesuaikan dengan package Anda
 
 import androidx.appcompat.app.AppCompatActivity;
