@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/white"> 
-    
+
     <com.google.android.gms.ads.AdView
         android:id="@+id/ad_view_top_banner"
         android:layout_width="match_parent"
@@ -58,6 +58,19 @@
                 
             <FrameLayout
                 android:id="@+id/native_ad_placeholder_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp" 
+                android:layout_marginBottom="20dp" />
+
+            <WebView
+                android:id="@+id/webView4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="250dp" />
+                
+            <FrameLayout
+                android:id="@+id/native_ad_placeholder_4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp" 
