@@ -20,7 +20,8 @@
             android:layout_gravity="center_horizontal"
             app:adSize="BANNER"
             app:adUnitId="ca-app-pub-3940256099942544/6300978111" /> 
-            <ScrollView
+
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fillViewport="true">
@@ -30,17 +31,16 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingBottom="16dp"> 
+                
                 <WebView
                     android:id="@+id/webView1"
                     android:layout_width="match_parent"
-                    android:layout_height="180dp" 
-                    android:layout_marginBottom="10dp"/>
+                    android:layout_height="250dp"  android:layout_marginBottom="10dp"/>
 
                 <WebView
                     android:id="@+id/webView2"
                     android:layout_width="match_parent"
-                    android:layout_height="180dp" 
-                    android:layout_marginBottom="10dp"/>
+                    android:layout_height="250dp"  android:layout_marginBottom="10dp"/>
 
                 <FrameLayout
                     android:id="@+id/native_ad_placeholder_1"
@@ -53,14 +53,12 @@
                 <WebView
                     android:id="@+id/webView3"
                     android:layout_width="match_parent"
-                    android:layout_height="180dp" 
-                    android:layout_marginBottom="10dp"/>
+                    android:layout_height="250dp"  android:layout_marginBottom="10dp"/>
 
                 <WebView
                     android:id="@+id/webView4"
                     android:layout_width="match_parent"
-                    android:layout_height="180dp" 
-                    android:layout_marginBottom="10dp"/>
+                    android:layout_height="250dp"  android:layout_marginBottom="10dp"/>
 
                 <FrameLayout
                     android:id="@+id/native_ad_placeholder_2"
