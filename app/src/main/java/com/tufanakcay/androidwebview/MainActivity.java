@@ -1,5 +1,4 @@
 package com.tufanakcay.androidwebview; 
-// PASTIKAN PACKAGE INI SESUAI DENGAN YANG ANDA GUNAKAN
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,7 +14,6 @@ import androidx.annotation.NonNull;
 import com.google.android.gms.ads.MobileAds; 
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
@@ -31,9 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private AdView adViewTopBanner;
     
     private InterstitialAd mInterstitialAd; 
-    private int backPressCount = 0; // Penghitung Interstitial (2 kali back)
-    
-    // 🔥 VARIABEL STATUS BOOLEAN (Pengganti cek visibility yang tidak stabil)
+    private int backPressCount = 0; 
     private boolean isInDetailView = false; 
 
     @Override
@@ -46,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
         webViewDetail = findViewById(R.id.webViewDetail);
         adViewTopBanner = findViewById(R.id.ad_view_top_banner);
         
-        // 1. Inisialisasi MobileAds
         MobileAds.initialize(this, new OnInitializationCompleteListener() {
             @Override
             public void onInitializationComplete(InitializationStatus initializationStatus) {
@@ -60,73 +55,22 @@ public class MainActivity extends AppCompatActivity {
         setupWebViewDetail(webViewDetail); 
     }
 
-    private void loadBannerAd() {
-        adViewTopBanner.loadAd(new AdRequest.Builder().build());
-        adViewTopBanner.setAdListener(new AdListener() {
-            @Override
-            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                Log.e("AdMob", "Banner GAGAL dimuat. Error: " + loadAdError.getMessage());
-                adViewTopBanner.setVisibility(View.GONE); 
-            }
-            @Override
-            public void onAdLoaded() {
-                Log.i("AdMob", "Banner BERHASIL dimuat.");
-                adViewTopBanner.setVisibility(View.VISIBLE); 
-            }
-        });
-    }
-
-    private void loadInterstitialAd() {
-        AdRequest adRequest = new AdRequest.Builder().build();
-        InterstitialAd.load(this,"ca-app-pub-3940256099942544/1033173712", 
-            adRequest, new InterstitialAdLoadCallback() {
-                @Override
-                public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
-                    mInterstitialAd = interstitialAd;
-                    Log.i("AdMob", "Interstitial Ad loaded.");
-                }
-                @Override
-                public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                    mInterstitialAd = null;
-                    Log.e("AdMob", "Interstitial Ad failed to load: " + loadAdError.getMessage());
-                }
-            });
-    }
-
-    // --- Logika WebView ---
-
-    private void setupWebViewMenu(WebView wv, String url) {
-        wv.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                if (url.startsWith("myapp://")) {
-                    String detailUrl = url.replace("myapp://", "file:///android_asset/2/");
-                    loadDetail(detailUrl + ".html");
-                    return true;
-                }
-                return false;
-            }
-        });
-        WebSettings webSettings = wv.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        // Pastikan AdPlacer.java ada di package yang sama
-        wv.addJavascriptInterface(new AdPlacer(this, wv), "AndroidAds"); 
-        wv.loadUrl(url);
-    }
+    // --- (Fungsi loadBannerAd dan loadInterstitialAd dihilangkan untuk keringkasan, tetapi harus tetap ada) ---
+    private void loadBannerAd() { /* ... kode AdMob Banner Anda ... */ }
+    private void loadInterstitialAd() { /* ... kode AdMob Interstitial Anda ... */ }
+    private void setupWebViewMenu(WebView wv, String url) { /* ... kode setup WebViewMenu Anda ... */ }
+    private void setupWebViewDetail(WebView wv) { /* ... kode setup WebViewDetail Anda ... */ }
     
-    private void setupWebViewDetail(WebView wv) {
-        wv.setWebViewClient(new WebViewClient());
-        WebSettings webSettings = wv.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        wv.setVisibility(View.GONE);
-    }
+    // --- Logika Detail View ---
 
     private void loadDetail(String url) {
         webViewDetail.loadUrl(url);
+        // 🔥 KRITIS 1: Bersihkan riwayat internal WebView saat masuk Detail
+        webViewDetail.clearHistory(); 
+        
         menuLayout.setVisibility(View.GONE);
         webViewDetail.setVisibility(View.VISIBLE);
         backPressCount = 0; 
-        // 🔥 Set status Detail View = TRUE saat masuk
         isInDetailView = true; 
     }
     
@@ -137,14 +81,14 @@ public class MainActivity extends AppCompatActivity {
         // Kasus 1: Cek status boolean (Detail View)
         if (isInDetailView) {
             
-            // 🔥 RIWAYAT WEBVIEW: Paksa mundur jika ada riwayat internal WebView (Mencegah close paksa)
+            // 🔥 Cek dan paksa WebView mundur DAHULU jika ada riwayat
             if (webViewDetail.canGoBack()) {
                 Log.d("BackDebug", "WebView history detected, going back.");
                 webViewDetail.goBack();
-                return; // KONSUMSI: Biarkan WebView mundur
+                return; 
             }
             
-            // --- Logika Counter Interstitial (Hanya berjalan jika WebView tidak bisa mundur) ---
+            // --- Logika Counter Interstitial ---
             backPressCount++;
             Log.d("BackDebug", "Detail View (No history): Counter=" + backPressCount);
 
@@ -159,8 +103,9 @@ public class MainActivity extends AppCompatActivity {
                             // Setelah Iklan ditutup, kembali ke menu
                             menuLayout.setVisibility(View.VISIBLE);
                             webViewDetail.setVisibility(View.GONE);
+                            // 🔥 KRITIS 2: Bersihkan riwayat internal WebView saat kembali
+                            webViewDetail.clearHistory(); 
                             loadInterstitialAd(); 
-                            // 🔥 Set status Detail View = FALSE setelah kembali ke menu
                             isInDetailView = false; 
                         }
                     });
@@ -168,9 +113,10 @@ public class MainActivity extends AppCompatActivity {
                     // Jika iklan TIDAK siap: Langsung kembali ke menu
                     menuLayout.setVisibility(View.VISIBLE);
                     webViewDetail.setVisibility(View.GONE);
+                    // 🔥 KRITIS 2: Bersihkan riwayat internal WebView saat kembali
+                    webViewDetail.clearHistory(); 
                     loadInterstitialAd(); 
                     backPressCount = 0; 
-                    // 🔥 Set status Detail View = FALSE setelah kembali ke menu
                     isInDetailView = false;
                 }
             } 
