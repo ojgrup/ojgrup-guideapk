@@ -133,12 +133,12 @@ public class MainActivity extends AppCompatActivity {
         backPressCount = 0; // Reset counter saat masuk detail view
     }
     
-    // ⬇️ PERBAIKAN KRUSIAL: JARING PENGAMAN UNTUK TOMBOL BACK
+    // ⬇️ PERBAIKAN KRUSIAL: JARING PENGAMAN (Fix Tombol Back Tidak Berfungsi)
     @Override
     public void onBackPressed() {
         // Memaksa sistem untuk menggunakan onKeyDown()
+        // Ini mengatasi masalah tombol back yang tidak berfungsi sama sekali
         onKeyDown(KeyEvent.KEYCODE_BACK, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));
-        // TIDAK BOLEH memanggil super.onBackPressed() di sini
     }
     // ⬆️ JARING PENGAMAN
 
@@ -175,14 +175,15 @@ public class MainActivity extends AppCompatActivity {
                         backPressCount = 0; 
                     }
                 } 
-                // ✅ KRITIS: Konsumsi tombol BACK. Ini mencegah aplikasi close saat di Detail View.
+                // ✅ Fix: Konsumsi tombol BACK. Ini mencegah aplikasi close saat di Detail View.
                 return true; 
             }
 
             // Kasus 2: Kita berada di Menu Utama (menuLayout)
             if (menuLayout.getVisibility() == View.VISIBLE) {
-                // Biarkan default Android keluar
-                return super.onKeyDown(keyCode, event);
+                // 🔥 KRITIS: Perintah eksplisit untuk keluar.
+                finish(); 
+                return true; // Konsumsi event
             }
         }
         return super.onKeyDown(keyCode, event);
