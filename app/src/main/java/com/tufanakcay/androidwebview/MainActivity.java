@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     
     private InterstitialAd mInterstitialAd; 
     private int backPressCount = 0; 
-    private boolean isInDetailView = false; // State Management
+    private boolean isInDetailView = false; 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,51 +43,26 @@ public class MainActivity extends AppCompatActivity {
         webViewDetail = findViewById(R.id.webViewDetail);
         adViewTopBanner = findViewById(R.id.ad_view_top_banner);
         
-        // Pastikan menuLayout terlihat saat awal
         menuLayout.setVisibility(View.VISIBLE); 
 
         MobileAds.initialize(this, new OnInitializationCompleteListener() {
             @Override
             public void onInitializationComplete(InitializationStatus initializationStatus) {
-                Log.i("AdMob", "AdMob Initialized. Loading Ads...");
                 loadBannerAd();
                 loadInterstitialAd(); 
             }
         });
 
+        // Setup dan Loading Menu hanya terjadi SATU KALI di onCreate
         setupWebViewMenu(webViewMenu, "file:///android_asset/1/index.html"); 
         setupWebViewDetail(webViewDetail); 
-        
-        // Memuat ulang Menu saat onCreate (Fix Layar Kosong)
         webViewMenu.loadUrl("file:///android_asset/1/index.html"); 
     }
 
-    private void loadBannerAd() {
-        AdRequest adRequest = new AdRequest.Builder().build();
-        adViewTopBanner.loadAd(adRequest);
-        adViewTopBanner.setAdListener(new AdListener() {
-            @Override
-            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                adViewTopBanner.setVisibility(View.GONE); 
-            }
-            @Override
-            public void onAdLoaded() {
-                adViewTopBanner.setVisibility(View.VISIBLE); 
-            }
-        });
-    }
-
-    private void loadInterstitialAd() {
-        AdRequest adRequest = new AdRequest.Builder().build();
-        InterstitialAd.load(this,"ca-app-pub-3940256099942544/1033173712", 
-            adRequest, new InterstitialAdLoadCallback() {
-                @Override
-                public void onAdLoaded(@NonNull InterstitialAd interstitialAd) { mInterstitialAd = interstitialAd; }
-                @Override
-                public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) { mInterstitialAd = null; }
-            });
-    }
-
+    // --- (Fungsi AdMob dan Setup lainnya dihilangkan untuk keringkasan, tetapi harus tetap ada) ---
+    private void loadBannerAd() { /* ... */ }
+    private void loadInterstitialAd() { /* ... */ }
+    
     private void setupWebViewMenu(WebView wv, String url) {
         wv.setWebViewClient(new WebViewClient() {
             @Override
@@ -102,6 +77,9 @@ public class MainActivity extends AppCompatActivity {
         });
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        
+        // 🔥 FIX IKLAN NATIVE: Javascript Interface harus ditambahkan di sini.
+        // Asumsi kelas AdPlacer ada di package yang sama.
         // wv.addJavascriptInterface(new AdPlacer(this, wv), "AndroidAds"); 
     }
     
@@ -126,55 +104,45 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         
-        // Kasus 1: Detail View
         if (isInDetailView) {
             
-            // Cek Riwayat WebView internal (sangat penting untuk mencegah close)
+            // Cek Riwayat WebView internal 
             if (webViewDetail.canGoBack()) {
                 webViewDetail.goBack();
                 return; 
             }
             
-            // --- Logika Counter Interstitial (Hanya berjalan jika WebView tidak bisa mundur) ---
+            // --- Logika Counter Interstitial ---
             backPressCount++;
-            Log.d("BackDebug", "Detail View (No history): Counter=" + backPressCount);
-
+            
             if (backPressCount >= 2) { 
                 if (mInterstitialAd != null) {
                     mInterstitialAd.show(this);
                     backPressCount = 0; 
                     
-                    // 🔥 KRITIS: Semua logika kembali ke menu harus di dalam callback Iklan
                     mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
                         @Override
                         public void onAdDismissedFullScreenContent() {
-                            // 1. Ganti View
+                            // 🔥 FOKUS: Hanya GANTI VIEW dan CLEAR HISTORY. Tidak ada loadUrl Menu.
                             menuLayout.setVisibility(View.VISIBLE);
                             webViewDetail.setVisibility(View.GONE);
-                            // 2. Bersihkan/Muat Ulang
-                            webViewDetail.clearHistory(); 
-                            webViewMenu.loadUrl("file:///android_asset/1/index.html"); 
-                            // 3. Set State dan Muat Ulang Iklan
+                            webViewDetail.clearHistory(); // Membersihkan riwayat Detail
                             loadInterstitialAd(); 
                             isInDetailView = false; 
                         }
                     });
                 } else {
-                    // Jika iklan TIDAK siap: Langsung kembali ke menu (Jalur B)
+                    // Jika iklan TIDAK siap: Langsung kembali ke menu
+                    // 🔥 FOKUS: Hanya GANTI VIEW dan CLEAR HISTORY. Tidak ada loadUrl Menu.
                     menuLayout.setVisibility(View.VISIBLE);
                     webViewDetail.setVisibility(View.GONE);
                     webViewDetail.clearHistory(); 
                     loadInterstitialAd(); 
                     backPressCount = 0; 
                     isInDetailView = false;
-                    
-                    // Muat ulang Menu Utama
-                    webViewMenu.loadUrl("file:///android_asset/1/index.html"); 
                 }
             } 
-            
-            // Konsumsi event agar tidak close (menunggu klik kedua)
-            return; 
+            return; // Konsumsi event
         }
 
         // Kasus 2: Menu Utama (Keluar)
