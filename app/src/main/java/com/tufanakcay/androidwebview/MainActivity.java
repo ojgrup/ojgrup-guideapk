@@ -1,4 +1,5 @@
 package com.tufanakcay.androidwebview; 
+// PASTIKAN PACKAGE INI SESUAI DENGAN YANG ANDA GUNAKAN
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
@@ -32,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private InterstitialAd mInterstitialAd; 
     private int backPressCount = 0; // Penghitung Interstitial (2 kali back)
     
-    // 🔥 VARIABEL BARU UNTUK MENGATASI MASALAH VISIBILITY CHECK
+    // 🔥 VARIABEL STATUS BOOLEAN (Pengganti cek visibility yang tidak stabil)
     private boolean isInDetailView = false; 
 
     @Override
@@ -108,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
         });
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        // Pastikan AdPlacer.java ada di package yang sama
         wv.addJavascriptInterface(new AdPlacer(this, wv), "AndroidAds"); 
         wv.loadUrl(url);
     }
@@ -128,15 +130,23 @@ public class MainActivity extends AppCompatActivity {
         isInDetailView = true; 
     }
     
-    // --- KODE TERKUAT UNTUK TOMBOL BACK (onBackPressed) ---
+    // --- KODE TERAKHIR UNTUK TOMBOL BACK (onBackPressed) ---
     @Override
     public void onBackPressed() {
         
-        // Kasus 1: Cek status boolean, BUKAN visibility View.
+        // Kasus 1: Cek status boolean (Detail View)
         if (isInDetailView) {
             
+            // 🔥 RIWAYAT WEBVIEW: Paksa mundur jika ada riwayat internal WebView (Mencegah close paksa)
+            if (webViewDetail.canGoBack()) {
+                Log.d("BackDebug", "WebView history detected, going back.");
+                webViewDetail.goBack();
+                return; // KONSUMSI: Biarkan WebView mundur
+            }
+            
+            // --- Logika Counter Interstitial (Hanya berjalan jika WebView tidak bisa mundur) ---
             backPressCount++;
-            Log.d("BackDebug", "Detail View (STATUS TRUE): Counter=" + backPressCount);
+            Log.d("BackDebug", "Detail View (No history): Counter=" + backPressCount);
 
             if (backPressCount >= 2) { 
                 if (mInterstitialAd != null) {
@@ -165,11 +175,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             } 
             
-            // Konsumsi event dengan return; agar tidak close
+            // Konsumsi event agar tidak close
             return; 
         }
 
-        // Jika isInDetailView adalah FALSE (berarti di Menu Utama), kita keluar dari aplikasi.
+        // Kasus 2: Menu Utama (isInDetailView == FALSE)
         Log.d("BackDebug", "Menu View: App Closing");
         super.onBackPressed(); 
     }
