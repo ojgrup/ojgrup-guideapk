@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         });
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        // 🔥 KRITIS untuk Iklan Native
+        // KRITIS untuk Iklan Native (Membutuhkan AdPlacer.java terpisah)
         wv.addJavascriptInterface(new AdPlacer(this, wv), "AndroidAds"); 
         wv.loadUrl(url);
     }
@@ -133,6 +133,15 @@ public class MainActivity extends AppCompatActivity {
         backPressCount = 0; // Reset counter saat masuk detail view
     }
     
+    // ⬇️ PERBAIKAN KRUSIAL: JARING PENGAMAN UNTUK TOMBOL BACK
+    @Override
+    public void onBackPressed() {
+        // Memaksa sistem untuk menggunakan onKeyDown()
+        onKeyDown(KeyEvent.KEYCODE_BACK, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));
+        // TIDAK BOLEH memanggil super.onBackPressed() di sini
+    }
+    // ⬆️ JARING PENGAMAN
+
     // --- Logika Tombol Back (FIX KELUAR APLIKASI) ---
 
     @Override
@@ -159,24 +168,21 @@ public class MainActivity extends AppCompatActivity {
                             }
                         });
                     } else {
-                        // Jika iklan tidak siap pada hitungan ke-2, langsung kembali ke menu
+                        // Jika iklan TIDAK siap pada hitungan ke-2: Langsung kembali ke menu
                         menuLayout.setVisibility(View.VISIBLE);
                         webViewDetail.setVisibility(View.GONE);
                         loadInterstitialAd(); 
                         backPressCount = 0; 
                     }
                 } 
-                // Konsumsi tombol back di Halaman Detail, meskipun baru hitungan ke-1
+                // ✅ KRITIS: Konsumsi tombol BACK. Ini mencegah aplikasi close saat di Detail View.
                 return true; 
             }
 
             // Kasus 2: Kita berada di Menu Utama (menuLayout)
             if (menuLayout.getVisibility() == View.VISIBLE) {
-                // Biarkan default Android keluar, karena kita sudah kembali dari detail view
+                // Biarkan default Android keluar
                 return super.onKeyDown(keyCode, event);
-                
-                // Jika Anda tidak ingin keluar, ganti baris di atas dengan:
-                // return true; 
             }
         }
         return super.onKeyDown(keyCode, event);
