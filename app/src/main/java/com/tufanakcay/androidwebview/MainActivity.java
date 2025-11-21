@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import com.google.android.gms.ads.MobileAds; 
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
@@ -30,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     
     private InterstitialAd mInterstitialAd; 
     private int backPressCount = 0; 
-    private boolean isInDetailView = false; 
+    private boolean isInDetailView = false; // State Management
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
         webViewDetail = findViewById(R.id.webViewDetail);
         adViewTopBanner = findViewById(R.id.ad_view_top_banner);
         
+        // Pastikan menuLayout terlihat saat awal
+        menuLayout.setVisibility(View.VISIBLE); 
+
         MobileAds.initialize(this, new OnInitializationCompleteListener() {
             @Override
             public void onInitializationComplete(InitializationStatus initializationStatus) {
@@ -53,19 +57,63 @@ public class MainActivity extends AppCompatActivity {
 
         setupWebViewMenu(webViewMenu, "file:///android_asset/1/index.html"); 
         setupWebViewDetail(webViewDetail); 
+        
+        // Memuat ulang Menu saat onCreate (Fix Layar Kosong)
+        webViewMenu.loadUrl("file:///android_asset/1/index.html"); 
     }
 
-    // --- (Fungsi loadBannerAd dan loadInterstitialAd dihilangkan untuk keringkasan, tetapi harus tetap ada) ---
-    private void loadBannerAd() { /* ... kode AdMob Banner Anda ... */ }
-    private void loadInterstitialAd() { /* ... kode AdMob Interstitial Anda ... */ }
-    private void setupWebViewMenu(WebView wv, String url) { /* ... kode setup WebViewMenu Anda ... */ }
-    private void setupWebViewDetail(WebView wv) { /* ... kode setup WebViewDetail Anda ... */ }
+    private void loadBannerAd() {
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adViewTopBanner.loadAd(adRequest);
+        adViewTopBanner.setAdListener(new AdListener() {
+            @Override
+            public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                adViewTopBanner.setVisibility(View.GONE); 
+            }
+            @Override
+            public void onAdLoaded() {
+                adViewTopBanner.setVisibility(View.VISIBLE); 
+            }
+        });
+    }
+
+    private void loadInterstitialAd() {
+        AdRequest adRequest = new AdRequest.Builder().build();
+        InterstitialAd.load(this,"ca-app-pub-3940256099942544/1033173712", 
+            adRequest, new InterstitialAdLoadCallback() {
+                @Override
+                public void onAdLoaded(@NonNull InterstitialAd interstitialAd) { mInterstitialAd = interstitialAd; }
+                @Override
+                public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) { mInterstitialAd = null; }
+            });
+    }
+
+    private void setupWebViewMenu(WebView wv, String url) {
+        wv.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                if (url.startsWith("myapp://")) {
+                    String detailUrl = url.replace("myapp://", "file:///android_asset/2/");
+                    loadDetail(detailUrl + ".html");
+                    return true;
+                }
+                return false;
+            }
+        });
+        WebSettings webSettings = wv.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        // wv.addJavascriptInterface(new AdPlacer(this, wv), "AndroidAds"); 
+    }
     
-    // --- Logika Detail View ---
+    private void setupWebViewDetail(WebView wv) {
+        wv.setWebViewClient(new WebViewClient());
+        WebSettings webSettings = wv.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        wv.setVisibility(View.GONE);
+    }
 
     private void loadDetail(String url) {
         webViewDetail.loadUrl(url);
-        // 🔥 KRITIS 1: Bersihkan riwayat internal WebView saat masuk Detail
         webViewDetail.clearHistory(); 
         
         menuLayout.setVisibility(View.GONE);
@@ -78,17 +126,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         
-        // Kasus 1: Cek status boolean (Detail View)
+        // Kasus 1: Detail View
         if (isInDetailView) {
             
-            // 🔥 Cek dan paksa WebView mundur DAHULU jika ada riwayat
+            // Cek Riwayat WebView internal (sangat penting untuk mencegah close)
             if (webViewDetail.canGoBack()) {
-                Log.d("BackDebug", "WebView history detected, going back.");
                 webViewDetail.goBack();
                 return; 
             }
             
-            // --- Logika Counter Interstitial ---
+            // --- Logika Counter Interstitial (Hanya berjalan jika WebView tidak bisa mundur) ---
             backPressCount++;
             Log.d("BackDebug", "Detail View (No history): Counter=" + backPressCount);
 
@@ -97,36 +144,40 @@ public class MainActivity extends AppCompatActivity {
                     mInterstitialAd.show(this);
                     backPressCount = 0; 
                     
+                    // 🔥 KRITIS: Semua logika kembali ke menu harus di dalam callback Iklan
                     mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
                         @Override
                         public void onAdDismissedFullScreenContent() {
-                            // Setelah Iklan ditutup, kembali ke menu
+                            // 1. Ganti View
                             menuLayout.setVisibility(View.VISIBLE);
                             webViewDetail.setVisibility(View.GONE);
-                            // 🔥 KRITIS 2: Bersihkan riwayat internal WebView saat kembali
+                            // 2. Bersihkan/Muat Ulang
                             webViewDetail.clearHistory(); 
+                            webViewMenu.loadUrl("file:///android_asset/1/index.html"); 
+                            // 3. Set State dan Muat Ulang Iklan
                             loadInterstitialAd(); 
                             isInDetailView = false; 
                         }
                     });
                 } else {
-                    // Jika iklan TIDAK siap: Langsung kembali ke menu
+                    // Jika iklan TIDAK siap: Langsung kembali ke menu (Jalur B)
                     menuLayout.setVisibility(View.VISIBLE);
                     webViewDetail.setVisibility(View.GONE);
-                    // 🔥 KRITIS 2: Bersihkan riwayat internal WebView saat kembali
                     webViewDetail.clearHistory(); 
                     loadInterstitialAd(); 
                     backPressCount = 0; 
                     isInDetailView = false;
+                    
+                    // Muat ulang Menu Utama
+                    webViewMenu.loadUrl("file:///android_asset/1/index.html"); 
                 }
             } 
             
-            // Konsumsi event agar tidak close
+            // Konsumsi event agar tidak close (menunggu klik kedua)
             return; 
         }
 
-        // Kasus 2: Menu Utama (isInDetailView == FALSE)
-        Log.d("BackDebug", "Menu View: App Closing");
+        // Kasus 2: Menu Utama (Keluar)
         super.onBackPressed(); 
     }
 }
