@@ -31,6 +31,9 @@ public class MainActivity extends AppCompatActivity {
     
     private InterstitialAd mInterstitialAd; 
     private int backPressCount = 0; // Penghitung Interstitial (2 kali back)
+    
+    // 🔥 VARIABEL BARU UNTUK MENGATASI MASALAH VISIBILITY CHECK
+    private boolean isInDetailView = false; 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
         });
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        // Pastikan AdPlacer.java ada di package yang sama
         wv.addJavascriptInterface(new AdPlacer(this, wv), "AndroidAds"); 
         wv.loadUrl(url);
     }
@@ -122,18 +124,19 @@ public class MainActivity extends AppCompatActivity {
         menuLayout.setVisibility(View.GONE);
         webViewDetail.setVisibility(View.VISIBLE);
         backPressCount = 0; 
+        // 🔥 Set status Detail View = TRUE saat masuk
+        isInDetailView = true; 
     }
     
     // --- KODE TERKUAT UNTUK TOMBOL BACK (onBackPressed) ---
     @Override
     public void onBackPressed() {
         
-        // 🔥 KRITIS: Gunakan pengecekan kebalikan. Jika menu tersembunyi (GONE),
-        // itu berarti kita ada di Detail View dan TIDAK BOLEH keluar.
-        if (menuLayout.getVisibility() == View.GONE) {
+        // Kasus 1: Cek status boolean, BUKAN visibility View.
+        if (isInDetailView) {
             
             backPressCount++;
-            Log.d("BackDebug", "Detail View (Menu GONE): Counter=" + backPressCount);
+            Log.d("BackDebug", "Detail View (STATUS TRUE): Counter=" + backPressCount);
 
             if (backPressCount >= 2) { 
                 if (mInterstitialAd != null) {
@@ -147,6 +150,8 @@ public class MainActivity extends AppCompatActivity {
                             menuLayout.setVisibility(View.VISIBLE);
                             webViewDetail.setVisibility(View.GONE);
                             loadInterstitialAd(); 
+                            // 🔥 Set status Detail View = FALSE setelah kembali ke menu
+                            isInDetailView = false; 
                         }
                     });
                 } else {
@@ -155,14 +160,16 @@ public class MainActivity extends AppCompatActivity {
                     webViewDetail.setVisibility(View.GONE);
                     loadInterstitialAd(); 
                     backPressCount = 0; 
+                    // 🔥 Set status Detail View = FALSE setelah kembali ke menu
+                    isInDetailView = false;
                 }
             } 
             
-            // ✅ Fix: Konsumsi event dengan return;
+            // Konsumsi event dengan return; agar tidak close
             return; 
         }
 
-        // Jika kita sampai di sini, menuLayout.getVisibility() pasti VISIBLE (Menu Utama).
+        // Jika isInDetailView adalah FALSE (berarti di Menu Utama), kita keluar dari aplikasi.
         Log.d("BackDebug", "Menu View: App Closing");
         super.onBackPressed(); 
     }
