@@ -2,7 +2,6 @@ package com.tufanakcay.androidwebview;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.os.Handler; 
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebSettings;
@@ -11,7 +10,9 @@ import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.view.KeyEvent;
 import androidx.annotation.NonNull;
+import android.webkit.JavascriptInterface; // Diperlukan untuk komunikasi HTML ke Java
 import android.widget.Toast; // Diperlukan untuk logika "Tekan Dua Kali"
+import android.os.Handler; // Diperlukan untuk logika "Tekan Dua Kali"
 
 // Imports AdMob
 import com.google.android.gms.ads.MobileAds;
@@ -28,9 +29,10 @@ import com.google.android.gms.ads.initialization.OnInitializationCompleteListene
 public class MainActivity extends AppCompatActivity {
 
     // --- Konstanta ---
+    // GANTI ID Iklan ini dengan ID Anda setelah pengujian!
     private static final String INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-3940256099942544/1033173712"; // ID Test
-    private static final String SPLASH_URL = "file:///android_asset/1/sflash.html";
-    private static final String MENU_URL = "file:///android_asset/1/index.html";
+    private static final String SPLASH_URL = "file:///android_asset/1/sflash.html"; 
+    private static final String MENU_URL = "file:///android_asset/1/index.html"; 
     private static final int EXIT_DELAY = 2000; // Delay 2 detik untuk keluar
 
     // --- Deklarasi Variabel ---
@@ -41,10 +43,8 @@ public class MainActivity extends AppCompatActivity {
     private AdView adViewTopBanner;
 
     private InterstitialAd mInterstitialAd;
-    // Hapus penggunaan backPressCount, kecuali jika kamu masih ingin menggunakannya untuk logika lain.
-    // private int backPressCount = 0; 
     
-    // 🔥 VARIABEL BARU UNTUK LOGIKA BACK DI MENU UTAMA
+    // Variabel untuk logika "Tekan Dua Kali untuk Keluar"
     private boolean isBackPressedOnce = false; 
 
     @Override
@@ -68,26 +68,29 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // 2. Tampilkan Splash Screen (Otomatis 3 detik)
+        // 2. Tampilkan Splash Screen (Mode Manual)
         setupWebViewSplash(webViewSplash, SPLASH_URL); 
 
         // 3. Persiapan WebView Menu dan Detail
         setupWebViewMenu(webViewMenu, MENU_URL);
         setupWebViewDetail(webViewDetail);
 
-        // 4. Handler untuk menyembunyikan Splash (Logika Otomatis)
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                // Sembunyikan Splash setelah durasi yang ditentukan
-                webViewSplash.setVisibility(View.GONE);
-                // Tampilkan Menu
-                menuLayout.setVisibility(View.VISIBLE);
-            }
-        }, 3000); 
+        // 🔥 Catatan: Handler dihilangkan agar Splash Screen menunggu tombol diklik.
     }
 
-    // --- loadBannerAd dan loadInterstitialAd (Tidak Berubah) ---
+    // --- FUNGSI BANTUAN ---
+
+    private void showMainMenu() {
+        // Harus berjalan di UI Thread karena memanipulasi View
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                webViewSplash.setVisibility(View.GONE);
+                menuLayout.setVisibility(View.VISIBLE);
+                Log.i("Splash", "Peralihan ke Menu Utama berhasil.");
+            }
+        });
+    }
 
     private void loadBannerAd() {
         adViewTopBanner.loadAd(new AdRequest.Builder().build());
@@ -122,16 +125,20 @@ public class MainActivity extends AppCompatActivity {
             });
     }
 
-    // --- Logika WebView (Tidak Berubah) ---
+    // --- LOGIKA WEBVIEW ---
 
+    // Splash: Ditambahkan interface untuk tombol manual
     private void setupWebViewSplash(WebView wv, String url) {
         wv.setWebViewClient(new WebViewClient());
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        // 🔥 TAMBAHKAN INTERFACE SPLASH UNTUK TOMBOL MANUAL
+        wv.addJavascriptInterface(new SplashInterface(this), "AndroidSplash"); 
         wv.setVisibility(View.VISIBLE);
         wv.loadUrl(url);
     }
     
+    // Menu: Ditambahkan kembali interface AdPlacer untuk iklan native
     private void setupWebViewMenu(WebView wv, String url) {
         wv.setWebViewClient(new WebViewClient() {
             @Override
@@ -146,8 +153,8 @@ public class MainActivity extends AppCompatActivity {
         });
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        // Pastikan AdPlacer (jika kamu menggunakannya) masih ada
-        // wv.addJavascriptInterface(new AdPlacer(this, wv), "AndroidAds"); 
+        // 🔥 PASTIKAN ADPLACER/ANDROIDADS ADA DI SINI UNTUK IKLAN NATIVE
+        wv.addJavascriptInterface(new AdPlacer(this, wv), "AndroidAds"); 
         wv.loadUrl(url); 
     }
 
@@ -162,10 +169,9 @@ public class MainActivity extends AppCompatActivity {
         webViewDetail.loadUrl(url);
         menuLayout.setVisibility(View.GONE);
         webViewDetail.setVisibility(View.VISIBLE);
-        // Hapus backPressCount = 0; karena backPressCount tidak digunakan di detail
     }
 
-    // --- Logika Tombol Back YANG DIPERBAIKI ---
+    // --- LOGIKA TOMBOL BACK YANG DIPERBAIKI ---
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -176,48 +182,45 @@ public class MainActivity extends AppCompatActivity {
                 return true; // Mengkonsumsi tombol back
             }
 
-            // 🔥 KASUS 1: Kita berada di Halaman Detail (webViewDetail)
+            // 🔥 KASUS 1: Halaman Detail ke Menu Utama (SATU KALI TEKAN)
             if (webViewDetail.getVisibility() == View.VISIBLE) {
                 
-                // Cek apakah Iklan Interstisial sudah siap
                 if (mInterstitialAd != null) {
                     mInterstitialAd.show(this);
                     
-                    // Atur callback: Setelah Iklan ditutup, BARU kembali ke Menu Utama
+                    // Setelah Iklan ditutup, kembali ke Menu Utama
                     mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
                         @Override
                         public void onAdDismissedFullScreenContent() {
-                            // Setelah Iklan ditutup, kembali ke menu
                             webViewDetail.setVisibility(View.GONE);
                             menuLayout.setVisibility(View.VISIBLE);
-                            loadInterstitialAd(); // Load iklan baru
+                            loadInterstitialAd(); 
                         }
                     });
                 } else {
-                    // Jika iklan tidak siap/null, langsung kembali ke Menu Utama
+                    // Jika iklan tidak siap, langsung kembali ke Menu Utama
                     Log.w("AdMob", "Interstitial Ad tidak siap. Langsung kembali ke menu.");
                     webViewDetail.setVisibility(View.GONE);
                     menuLayout.setVisibility(View.VISIBLE);
-                    loadInterstitialAd(); // Tetap load iklan baru
+                    loadInterstitialAd(); 
                 }
                 
-                // Konsumsi event back: SATU KALI TEKAN dari detail selalu kembali ke menu
+                // Konsumsi event back
                 return true; 
             }
 
-            // 🔥 KASUS 2: Kita berada di Menu Utama (menuLayout)
+            // 🔥 KASUS 2: Menu Utama (Tekan Dua Kali untuk Keluar)
             if (menuLayout.getVisibility() == View.VISIBLE) {
                 
                 if (isBackPressedOnce) {
-                    // Jika sudah ditekan sekali dalam 2 detik, biarkan aplikasi keluar
+                    // Jika sudah ditekan sekali, biarkan aplikasi keluar
                     return super.onKeyDown(keyCode, event); 
                 }
 
                 this.isBackPressedOnce = true;
-                // Tampilkan pesan kepada pengguna
                 Toast.makeText(this, "Tekan 'Back' sekali lagi untuk keluar.", Toast.LENGTH_SHORT).show();
 
-                // Reset status 'isBackPressedOnce' setelah jeda waktu (2 detik)
+                // Reset status 'isBackPressedOnce' setelah 2 detik
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -231,5 +234,22 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
     
-    // Jika kamu punya AdPlacer atau SplashInterface, pastikan mereka didefinisikan di sini
+    // --- KELAS JAVASCRIPT INTERFACE ---
+    
+    // Interface untuk memicu peralihan dari Splash HTML ke Java
+    public class SplashInterface {
+        MainActivity activity;
+
+        SplashInterface(MainActivity activity) {
+            this.activity = activity;
+        }
+
+        @JavascriptInterface
+        public void closeSplash() {
+            activity.showMainMenu();
+        }
+    }
+    
+    // Catatan: Pastikan kelas AdPlacer juga didefinisikan secara terpisah (atau sebagai inner class)
+    // agar kode wv.addJavascriptInterface(new AdPlacer(this, wv), "AndroidAds"); berfungsi.
 }
