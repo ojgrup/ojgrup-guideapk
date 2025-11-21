@@ -1,5 +1,4 @@
 package com.tufanakcay.androidwebview; 
-// PASTIKAN PACKAGE INI SESUAI DENGAN YANG ANDA GUNAKAN
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
@@ -63,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
                 Log.e("AdMob", "Banner GAGAL dimuat. Error: " + loadAdError.getMessage());
-                adViewTopBanner.setVisibility(View.GONE); // SEMBUNYIKAN jika gagal
+                adViewTopBanner.setVisibility(View.GONE); 
             }
             @Override
             public void onAdLoaded() {
@@ -75,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadInterstitialAd() {
         AdRequest adRequest = new AdRequest.Builder().build();
-        InterstitialAd.load(this,"ca-app-pub-3940256099942544/1033173712", // ID Interstitial Test
+        InterstitialAd.load(this,"ca-app-pub-3940256099942544/1033173712", 
             adRequest, new InterstitialAdLoadCallback() {
                 @Override
                 public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
@@ -106,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
         });
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
+        // Pastikan AdPlacer.java ada di package yang sama
         wv.addJavascriptInterface(new AdPlacer(this, wv), "AndroidAds"); 
         wv.loadUrl(url);
     }
@@ -121,18 +121,19 @@ public class MainActivity extends AppCompatActivity {
         webViewDetail.loadUrl(url);
         menuLayout.setVisibility(View.GONE);
         webViewDetail.setVisibility(View.VISIBLE);
-        backPressCount = 0; // Reset counter saat masuk detail view
+        backPressCount = 0; 
     }
     
-    // --- KODE TERKUAT UNTUK TOMBOL BACK (MENGGANTIKAN onKeyDown) ---
+    // --- KODE TERKUAT UNTUK TOMBOL BACK (onBackPressed) ---
     @Override
     public void onBackPressed() {
         
-        // Kasus 1: Kita berada di Halaman Detail (webViewDetail)
-        if (webViewDetail.getVisibility() == View.VISIBLE) {
+        // 🔥 KRITIS: Gunakan pengecekan kebalikan. Jika menu tersembunyi (GONE),
+        // itu berarti kita ada di Detail View dan TIDAK BOLEH keluar.
+        if (menuLayout.getVisibility() == View.GONE) {
             
             backPressCount++;
-            Log.d("BackDebug", "Detail View: Counter=" + backPressCount);
+            Log.d("BackDebug", "Detail View (Menu GONE): Counter=" + backPressCount);
 
             if (backPressCount >= 2) { 
                 if (mInterstitialAd != null) {
@@ -149,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                 } else {
-                    // Jika iklan TIDAK siap pada hitungan ke-2: Langsung kembali ke menu
+                    // Jika iklan TIDAK siap: Langsung kembali ke menu
                     menuLayout.setVisibility(View.VISIBLE);
                     webViewDetail.setVisibility(View.GONE);
                     loadInterstitialAd(); 
@@ -157,19 +158,12 @@ public class MainActivity extends AppCompatActivity {
                 }
             } 
             
-            // ✅ Fix: JANGAN panggil super.onBackPressed(), ini mengonsumsi event.
-            return; // Cukup hentikan eksekusi, ini sama dengan return true di onKeyDown.
+            // ✅ Fix: Konsumsi event dengan return;
+            return; 
         }
 
-        // Kasus 2: Kita berada di Menu Utama (menuLayout)
-        if (menuLayout.getVisibility() == View.VISIBLE) {
-            // Ini adalah satu-satunya tempat aplikasi diizinkan untuk close
-            Log.d("BackDebug", "Menu View: App Closing");
-            super.onBackPressed(); 
-        }
-        // Jika View lain yang terlihat (atau View.GONE), biarkan default exit
-        else {
-            super.onBackPressed();
-        }
+        // Jika kita sampai di sini, menuLayout.getVisibility() pasti VISIBLE (Menu Utama).
+        Log.d("BackDebug", "Menu View: App Closing");
+        super.onBackPressed(); 
     }
 }
