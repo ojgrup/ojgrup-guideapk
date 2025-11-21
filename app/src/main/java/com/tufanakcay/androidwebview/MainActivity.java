@@ -9,7 +9,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
-import android.view.KeyEvent;
 import androidx.annotation.NonNull;
 
 // Imports AdMob
@@ -49,11 +48,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onInitializationComplete(InitializationStatus initializationStatus) {
                 Log.i("AdMob", "AdMob Initialized. Loading Ads...");
-                
-                // 2. Load Banner
                 loadBannerAd();
-                
-                // 3. Load Interstitial
                 loadInterstitialAd(); 
             }
         });
@@ -64,15 +59,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadBannerAd() {
         adViewTopBanner.loadAd(new AdRequest.Builder().build());
-        
-        // AdListener untuk Banner (Menghilangkan Blank Putih jika gagal)
         adViewTopBanner.setAdListener(new AdListener() {
             @Override
             public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
                 Log.e("AdMob", "Banner GAGAL dimuat. Error: " + loadAdError.getMessage());
                 adViewTopBanner.setVisibility(View.GONE); // SEMBUNYIKAN jika gagal
             }
-
             @Override
             public void onAdLoaded() {
                 Log.i("AdMob", "Banner BERHASIL dimuat.");
@@ -114,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
         });
         WebSettings webSettings = wv.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        // KRITIS untuk Iklan Native (Membutuhkan AdPlacer.java terpisah)
         wv.addJavascriptInterface(new AdPlacer(this, wv), "AndroidAds"); 
         wv.loadUrl(url);
     }
@@ -133,59 +124,52 @@ public class MainActivity extends AppCompatActivity {
         backPressCount = 0; // Reset counter saat masuk detail view
     }
     
-    // ⬇️ PERBAIKAN KRUSIAL: JARING PENGAMAN (Fix Tombol Back Tidak Berfungsi)
+    // --- KODE TERKUAT UNTUK TOMBOL BACK (MENGGANTIKAN onKeyDown) ---
     @Override
     public void onBackPressed() {
-        // Memaksa sistem untuk menggunakan onKeyDown()
-        // Ini mengatasi masalah tombol back yang tidak berfungsi sama sekali
-        onKeyDown(KeyEvent.KEYCODE_BACK, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));
-    }
-    // ⬆️ JARING PENGAMAN
+        
+        // Kasus 1: Kita berada di Halaman Detail (webViewDetail)
+        if (webViewDetail.getVisibility() == View.VISIBLE) {
+            
+            backPressCount++;
+            Log.d("BackDebug", "Detail View: Counter=" + backPressCount);
 
-    // --- Logika Tombol Back (FIX KELUAR APLIKASI) ---
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-
-            // Kasus 1: Kita berada di Halaman Detail (webViewDetail)
-            if (webViewDetail.getVisibility() == View.VISIBLE) {
-                
-                backPressCount++; // TAMBAH HITUNGAN BACK PRESS
-
-                if (backPressCount >= 2) { 
-                    if (mInterstitialAd != null) {
-                        mInterstitialAd.show(this);
-                        backPressCount = 0; 
-                        
-                        mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
-                            @Override
-                            public void onAdDismissedFullScreenContent() {
-                                // Setelah Iklan ditutup, kembali ke menu
-                                menuLayout.setVisibility(View.VISIBLE);
-                                webViewDetail.setVisibility(View.GONE);
-                                loadInterstitialAd(); 
-                            }
-                        });
-                    } else {
-                        // Jika iklan TIDAK siap pada hitungan ke-2: Langsung kembali ke menu
-                        menuLayout.setVisibility(View.VISIBLE);
-                        webViewDetail.setVisibility(View.GONE);
-                        loadInterstitialAd(); 
-                        backPressCount = 0; 
-                    }
-                } 
-                // ✅ Fix: Konsumsi tombol BACK. Ini mencegah aplikasi close saat di Detail View.
-                return true; 
-            }
-
-            // Kasus 2: Kita berada di Menu Utama (menuLayout)
-            if (menuLayout.getVisibility() == View.VISIBLE) {
-                // 🔥 KRITIS: Perintah eksplisit untuk keluar.
-                finish(); 
-                return true; // Konsumsi event
-            }
+            if (backPressCount >= 2) { 
+                if (mInterstitialAd != null) {
+                    mInterstitialAd.show(this);
+                    backPressCount = 0; 
+                    
+                    mInterstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                        @Override
+                        public void onAdDismissedFullScreenContent() {
+                            // Setelah Iklan ditutup, kembali ke menu
+                            menuLayout.setVisibility(View.VISIBLE);
+                            webViewDetail.setVisibility(View.GONE);
+                            loadInterstitialAd(); 
+                        }
+                    });
+                } else {
+                    // Jika iklan TIDAK siap pada hitungan ke-2: Langsung kembali ke menu
+                    menuLayout.setVisibility(View.VISIBLE);
+                    webViewDetail.setVisibility(View.GONE);
+                    loadInterstitialAd(); 
+                    backPressCount = 0; 
+                }
+            } 
+            
+            // ✅ Fix: JANGAN panggil super.onBackPressed(), ini mengonsumsi event.
+            return; // Cukup hentikan eksekusi, ini sama dengan return true di onKeyDown.
         }
-        return super.onKeyDown(keyCode, event);
+
+        // Kasus 2: Kita berada di Menu Utama (menuLayout)
+        if (menuLayout.getVisibility() == View.VISIBLE) {
+            // Ini adalah satu-satunya tempat aplikasi diizinkan untuk close
+            Log.d("BackDebug", "Menu View: App Closing");
+            super.onBackPressed(); 
+        }
+        // Jika View lain yang terlihat (atau View.GONE), biarkan default exit
+        else {
+            super.onBackPressed();
+        }
     }
 }
