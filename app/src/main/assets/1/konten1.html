@@ -1,4 +1,45 @@
-<button onclick="AndroidApp.backToMenu()">KEMBALI KE MENU</button>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Detail Konten</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        /* Styling untuk Tombol Kustom */
+        .custom-back-button {
+            display: block; /* Membuat tombol mengambil lebar penuh */
+            width: 100%;
+            padding: 15px 0;
+            margin-bottom: 20px; /* Jarak antara tombol dan konten */
+            background-color: #f44336; /* Warna merah agar menonjol sebagai tombol kembali */
+            color: white;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .custom-back-button:active {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
 
-What is Lorem Ipsum?
-Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+    <button class="custom-back-button" onclick="AndroidApp.backToMenu()">
+        KEMBALI KE MENU
+    </button>
+    
+    <h1>What is Lorem Ipsum?</h1>
+    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+
+    </body>
+</html>
